@@ -35,7 +35,7 @@ class AutonomousAnalyzer:
         ]
     
     @st.cache_data(ttl=3600)  # Cache for 1 hour
-    def _fetch_extended_stock_universe(self) -> Dict[str, List[str]]:
+    def _fetch_extended_stock_universe(_self) -> Dict[str, List[str]]:
         """Fetch comprehensive list of US stocks for autonomous analysis"""
         try:
             # Fetch S&P 500

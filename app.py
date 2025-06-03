@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime, timedelta
 import io
+import time
 
 # Import custom modules
 from data_fetcher import DataFetcher
@@ -12,6 +13,8 @@ from halal_screener import HalalScreener
 from technical_analysis import TechnicalAnalyzer
 from autonomous_analyzer import AutonomousAnalyzer
 from perpetual_ai_trader import PerpetualAITrader
+from ai_research_assistant import AIResearchAssistant
+from telegram_algo_bot import TelegramAlgoBot, start_telegram_bot_service
 
 # Configure Streamlit page
 st.set_page_config(
