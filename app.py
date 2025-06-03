@@ -10,6 +10,7 @@ import io
 from data_fetcher import DataFetcher
 from halal_screener import HalalScreener
 from technical_analysis import TechnicalAnalyzer
+from autonomous_analyzer import AutonomousAnalyzer
 
 # Configure Streamlit page
 st.set_page_config(
@@ -22,9 +23,9 @@ st.set_page_config(
 # Initialize classes
 @st.cache_resource
 def get_analyzers():
-    return DataFetcher(), HalalScreener(), TechnicalAnalyzer()
+    return DataFetcher(), HalalScreener(), TechnicalAnalyzer(), AutonomousAnalyzer()
 
-data_fetcher, halal_screener, technical_analyzer = get_analyzers()
+data_fetcher, halal_screener, technical_analyzer, autonomous_analyzer = get_analyzers()
 
 # Sidebar navigation
 st.sidebar.title("🕌 Halal Stock Analysis")
@@ -36,6 +37,7 @@ page = st.sidebar.selectbox(
         "🏠 Home",
         "🔍 Single Stock Analysis", 
         "📊 Halal Stock Screener",
+        "🤖 AI Market Analysis",
         "💰 Penny Stock Finder",
         "📈 Market Research"
     ]
@@ -390,6 +392,260 @@ elif page == "📊 Halal Stock Screener":
                                 st.warning(f"⚠️ {issue}")
             else:
                 st.info("No stocks match the selected filters.")
+
+elif page == "🤖 AI Market Analysis":
+    st.title("🤖 AI Autonomous Market Analysis")
+    st.markdown("### AI-Powered Algorithmic Stock Research & Buy Signal Generation")
+    
+    display_disclaimer()
+    
+    # AI Analysis Configuration
+    st.subheader("🔧 AI Analysis Configuration")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        analysis_scope = st.selectbox(
+            "Analysis Scope:",
+            ["Comprehensive Market Scan", "S&P 500 Focus", "High-Growth Stocks", "Value Opportunities"]
+        )
+    
+    with col2:
+        max_stocks_to_analyze = st.number_input(
+            "Max Stocks to Analyze:",
+            min_value=20, max_value=200, value=100, step=10,
+            help="Higher numbers provide more comprehensive results but take longer"
+        )
+    
+    with col3:
+        halal_compliance_only = st.checkbox(
+            "Halal Compliant Only",
+            value=True,
+            help="Filter results to only show halal-compliant stocks"
+        )
+    
+    # Analysis execution
+    analyze_btn = st.button("🚀 Start AI Market Analysis", type="primary")
+    
+    if analyze_btn:
+        # AI conducts autonomous market research
+        with st.spinner("AI conducting autonomous market research and generating buy signals..."):
+            # Fetch comprehensive market data
+            market_data = autonomous_analyzer.autonomous_market_scan(max_stocks_to_analyze)
+            
+            if not market_data:
+                st.error("Could not fetch market data. Please check your internet connection.")
+                st.stop()
+            
+            # Generate AI buy signals
+            ai_signals = autonomous_analyzer.calculate_advanced_buy_signals(market_data)
+            
+            if ai_signals.empty:
+                st.warning("AI analysis completed but no viable opportunities found.")
+                st.stop()
+            
+            # Apply halal screening if requested
+            if halal_compliance_only:
+                halal_results = halal_screener.screen_multiple_stocks(market_data)
+                if not halal_results.empty:
+                    compliant_symbols = halal_results[
+                        halal_results['status'].isin(['Likely Compliant', 'Requires Review'])
+                    ]['symbol'].tolist()
+                    ai_signals = ai_signals[ai_signals['symbol'].isin(compliant_symbols)]
+            
+            # Display AI Analysis Results
+            st.success("AI market analysis completed successfully!")
+            
+            # Summary metrics
+            st.subheader("📊 AI Analysis Summary")
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                total_analyzed = len(market_data)
+                st.metric("Stocks Analyzed", total_analyzed)
+            
+            with col2:
+                strong_buys = len(ai_signals[ai_signals['recommendation'] == 'Strong Buy'])
+                st.metric("Strong Buy Signals", strong_buys)
+            
+            with col3:
+                avg_signal_score = ai_signals['signal_score'].mean() if not ai_signals.empty else 0
+                st.metric("Avg Signal Score", f"{avg_signal_score:.1f}")
+            
+            with col4:
+                penny_stocks_found = len(ai_signals[ai_signals['is_penny_stock'] == True])
+                st.metric("Penny Stocks Found", penny_stocks_found)
+            
+            # Filter and display top opportunities
+            st.subheader("🎯 Top AI-Generated Buy Signals")
+            
+            # Filter controls
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                min_signal_score = st.slider("Min Signal Score:", 0, 100, 60)
+            with col2:
+                risk_filter = st.multiselect(
+                    "Risk Level:",
+                    options=['Low', 'Medium', 'High'],
+                    default=['Low', 'Medium', 'High']
+                )
+            with col3:
+                recommendation_filter = st.multiselect(
+                    "Recommendations:",
+                    options=ai_signals['recommendation'].unique().tolist(),
+                    default=['Strong Buy', 'Buy']
+                )
+            
+            # Apply filters
+            filtered_signals = ai_signals[
+                (ai_signals['signal_score'] >= min_signal_score) &
+                (ai_signals['risk_level'].isin(risk_filter)) &
+                (ai_signals['recommendation'].isin(recommendation_filter))
+            ]
+            
+            if not filtered_signals.empty:
+                # Create display dataframe
+                display_df = filtered_signals[[
+                    'symbol', 'company_name', 'current_price', 'recommendation',
+                    'signal_score', 'growth_score', 'risk_level', 'sector',
+                    'market_cap', 'price_change_pct', 'volatility', 'is_penny_stock'
+                ]].copy()
+                
+                # Format columns for better display
+                display_df['current_price'] = display_df['current_price'].apply(lambda x: f"${x:.2f}")
+                display_df['market_cap'] = display_df['market_cap'].apply(format_currency)
+                display_df['price_change_pct'] = display_df['price_change_pct'].apply(lambda x: f"{x:.1f}%")
+                display_df['volatility'] = display_df['volatility'].apply(lambda x: f"{x:.1f}%")
+                display_df['signal_score'] = display_df['signal_score'].apply(lambda x: f"{x:.1f}")
+                display_df['growth_score'] = display_df['growth_score'].apply(lambda x: f"{x:.1f}")
+                
+                display_df.columns = [
+                    'Symbol', 'Company', 'Price', 'AI Recommendation',
+                    'Signal Score', 'Growth Score', 'Risk Level', 'Sector',
+                    'Market Cap', 'Price Change %', 'Volatility %', 'Penny Stock'
+                ]
+                
+                # Color coding for recommendations
+                def highlight_recommendation(row):
+                    if row['AI Recommendation'] == 'Strong Buy':
+                        return ['background-color: #d4edda'] * len(row)
+                    elif row['AI Recommendation'] == 'Buy':
+                        return ['background-color: #e2f3ff'] * len(row)
+                    else:
+                        return [''] * len(row)
+                
+                styled_df = display_df.style.apply(highlight_recommendation, axis=1)
+                st.dataframe(styled_df, use_container_width=True)
+                
+                # Download functionality
+                create_download_csv(display_df, "ai_market_analysis_signals")
+                
+                # Detailed analysis for selected stock
+                st.subheader("🔍 Detailed AI Analysis")
+                selected_symbol = st.selectbox(
+                    "Select stock for detailed AI analysis:",
+                    options=filtered_signals['symbol'].tolist()
+                )
+                
+                if selected_symbol:
+                    selected_stock = filtered_signals[filtered_signals['symbol'] == selected_symbol].iloc[0]
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown("**AI Signal Analysis:**")
+                        rec_color = {
+                            'Strong Buy': '🟢',
+                            'Buy': '🔵', 
+                            'Hold': '🟡',
+                            'Weak Hold': '🟠',
+                            'Avoid': '🔴'
+                        }
+                        rec = selected_stock['recommendation']
+                        st.markdown(f"**{rec_color.get(rec, '⚪')} {rec}**")
+                        st.progress(selected_stock['signal_score'] / 100)
+                        st.caption(f"Signal Strength: {selected_stock['signal_score']:.1f}/100")
+                        
+                        st.markdown(f"**Growth Potential:** {selected_stock['growth_score']:.1f}/100")
+                        st.markdown(f"**Risk Level:** {selected_stock['risk_level']}")
+                    
+                    with col2:
+                        st.markdown("**Market Metrics:**")
+                        st.markdown(f"**Current Price:** ${selected_stock['current_price']:.2f}")
+                        st.markdown(f"**Market Cap:** {format_currency(selected_stock['market_cap'])}")
+                        st.markdown(f"**Sector:** {selected_stock['sector']}")
+                        st.markdown(f"**Price Momentum:** {selected_stock['price_change_pct']:.1f}%")
+                        st.markdown(f"**Volatility:** {selected_stock['volatility']:.1f}%")
+                        
+                        if selected_stock['is_penny_stock']:
+                            st.info("📌 This is classified as a penny stock")
+                
+                # AI-Generated Investment Strategy
+                st.subheader("🧠 AI Investment Strategy Recommendations")
+                
+                strong_buy_stocks = filtered_signals[filtered_signals['recommendation'] == 'Strong Buy']
+                buy_stocks = filtered_signals[filtered_signals['recommendation'] == 'Buy']
+                
+                if not strong_buy_stocks.empty:
+                    st.markdown("**🎯 High-Priority Opportunities (Strong Buy):**")
+                    for _, stock in strong_buy_stocks.head(5).iterrows():
+                        st.markdown(f"• **{stock['symbol']}** ({stock['company_name']}) - Signal: {stock['signal_score']:.1f}, Growth: {stock['growth_score']:.1f}")
+                
+                if not buy_stocks.empty:
+                    st.markdown("**📈 Secondary Opportunities (Buy):**")
+                    for _, stock in buy_stocks.head(3).iterrows():
+                        st.markdown(f"• **{stock['symbol']}** ({stock['company_name']}) - Signal: {stock['signal_score']:.1f}, Risk: {stock['risk_level']}")
+                
+            else:
+                st.info("No stocks match the current filter criteria. Try adjusting the filters.")
+            
+            # Penny Stock Opportunities
+            if not ai_signals.empty:
+                penny_opportunities = autonomous_analyzer.identify_penny_stock_opportunities(market_data)
+                
+                if not penny_opportunities.empty:
+                    st.subheader("💎 AI-Identified Penny Stock Opportunities")
+                    
+                    # Apply halal screening to penny stocks if requested
+                    if halal_compliance_only:
+                        penny_symbols = penny_opportunities['symbol'].tolist()
+                        penny_market_data = {symbol: market_data[symbol] for symbol in penny_symbols if symbol in market_data}
+                        
+                        if penny_market_data:
+                            penny_halal_results = halal_screener.screen_multiple_stocks(penny_market_data)
+                            if not penny_halal_results.empty:
+                                compliant_penny_symbols = penny_halal_results[
+                                    penny_halal_results['status'].isin(['Likely Compliant', 'Requires Review'])
+                                ]['symbol'].tolist()
+                                penny_opportunities = penny_opportunities[
+                                    penny_opportunities['symbol'].isin(compliant_penny_symbols)
+                                ]
+                    
+                    if not penny_opportunities.empty:
+                        # Display top penny stock opportunities
+                        top_penny = penny_opportunities.head(10)
+                        
+                        penny_display_df = top_penny[[
+                            'symbol', 'company_name', 'current_price', 'opportunity_score',
+                            'market_cap', 'volume', 'sector', 'price_momentum', 'risk_level'
+                        ]].copy()
+                        
+                        # Format penny stock data
+                        penny_display_df['current_price'] = penny_display_df['current_price'].apply(lambda x: f"${x:.2f}")
+                        penny_display_df['market_cap'] = penny_display_df['market_cap'].apply(format_currency)
+                        penny_display_df['volume'] = penny_display_df['volume'].apply(lambda x: f"{x:,}")
+                        penny_display_df['price_momentum'] = penny_display_df['price_momentum'].apply(lambda x: f"{x:.1f}%")
+                        penny_display_df['opportunity_score'] = penny_display_df['opportunity_score'].apply(lambda x: f"{x:.1f}")
+                        
+                        penny_display_df.columns = [
+                            'Symbol', 'Company', 'Price', 'Opportunity Score',
+                            'Market Cap', 'Volume', 'Sector', 'Momentum %', 'Risk'
+                        ]
+                        
+                        st.dataframe(penny_display_df, use_container_width=True)
+                        create_download_csv(penny_display_df, "ai_penny_stock_opportunities")
+                    
+                    else:
+                        st.info("No halal-compliant penny stock opportunities found in current analysis.")
 
 elif page == "💰 Penny Stock Finder":
     st.title("💰 Penny Stock Finder")
