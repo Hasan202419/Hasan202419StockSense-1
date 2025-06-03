@@ -27,9 +27,9 @@ st.set_page_config(
 # Initialize classes
 @st.cache_resource
 def get_analyzers():
-    return DataFetcher(), HalalScreener(), TechnicalAnalyzer(), AutonomousAnalyzer(), PerpetualAITrader()
+    return DataFetcher(), HalalScreener(), TechnicalAnalyzer(), AutonomousAnalyzer(), PerpetualAITrader(), AIResearchAssistant()
 
-data_fetcher, halal_screener, technical_analyzer, autonomous_analyzer, ai_trader = get_analyzers()
+data_fetcher, halal_screener, technical_analyzer, autonomous_analyzer, ai_trader, ai_research = get_analyzers()
 
 # Sidebar navigation
 st.sidebar.title("🕌 Halal Stock Analysis")
@@ -45,7 +45,9 @@ page = st.sidebar.selectbox(
         "🔥 Perpetual AI Trader",
         "🚀 Breakout Detector",
         "💰 Penny Stock Finder",
-        "📈 Market Research"
+        "📈 Market Research",
+        "🧠 AI Research Assistant",
+        "📱 Telegram Algo Bot"
     ]
 )
 
@@ -1409,6 +1411,296 @@ elif page == "📈 Market Research":
                     
                     summary_df = pd.DataFrame(summary_data)
                     create_download_csv(summary_df, "custom_research_summary")
+
+elif page == "🧠 AI Research Assistant":
+    st.title("🧠 AI Research Assistant")
+    st.markdown("**Unlimited Stock Analysis with Extreme Precision & Deep Research**")
+    
+    st.info("""
+    **Warren AI-Inspired Analysis System**
+    
+    This AI system provides comprehensive, factual analysis for any stock-related question with unlimited depth and precision.
+    Ask anything about stocks, markets, companies, valuations, technical analysis, or investment strategies.
+    """)
+    
+    # Question input
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        question = st.text_area(
+            "Ask any stock-related question:",
+            placeholder="Examples:\n• What is the complete analysis of AAPL?\n• Should I invest in Tesla right now?\n• Compare Microsoft vs Google fundamentally\n• What are the best dividend stocks?\n• Analyze the tech sector outlook",
+            height=120
+        )
+    
+    with col2:
+        stock_symbol = st.text_input(
+            "Stock Symbol (optional):",
+            placeholder="AAPL, TSLA, etc.",
+            help="Leave empty for general market questions"
+        )
+        
+        analysis_depth = st.selectbox(
+            "Analysis Depth:",
+            ["Comprehensive", "Quick", "Deep Research"]
+        )
+    
+    if st.button("🧠 Get AI Analysis", use_container_width=True):
+        if question.strip():
+            with st.spinner("AI conducting deep research and analysis..."):
+                try:
+                    # Get AI analysis
+                    answer = ai_research.answer_stock_question(
+                        question=question,
+                        symbol=stock_symbol.upper() if stock_symbol else None
+                    )
+                    
+                    # Display result
+                    st.markdown("### 📊 AI Analysis Result")
+                    
+                    # Format the answer nicely
+                    if "**" in answer or "#" in answer:
+                        st.markdown(answer)
+                    else:
+                        st.write(answer)
+                    
+                    # If specific stock mentioned, get comprehensive research
+                    if stock_symbol:
+                        st.markdown("### 📈 Comprehensive Stock Research")
+                        
+                        research = ai_research.comprehensive_stock_research(stock_symbol.upper())
+                        
+                        if 'error' not in research:
+                            # Company Overview
+                            overview = research['research_sections']['company_overview']
+                            st.subheader(f"{overview['company_name']} Overview")
+                            
+                            col1, col2, col3 = st.columns(3)
+                            with col1:
+                                st.metric("Market Cap", f"${overview['market_cap']:,.0f}")
+                            with col2:
+                                st.metric("Sector", overview['sector'])
+                            with col3:
+                                st.metric("Category", overview['market_cap_category'])
+                            
+                            # Investment Recommendation
+                            recommendation = research['research_sections']['investment_recommendation']
+                            
+                            if recommendation['recommendation'] == "Strong Buy":
+                                st.success(f"**Recommendation: {recommendation['recommendation']}**")
+                            elif recommendation['recommendation'] == "Buy":
+                                st.info(f"**Recommendation: {recommendation['recommendation']}**")
+                            elif recommendation['recommendation'] == "Hold":
+                                st.warning(f"**Recommendation: {recommendation['recommendation']}**")
+                            else:
+                                st.error(f"**Recommendation: {recommendation['recommendation']}**")
+                            
+                            st.write(f"**Overall Score:** {recommendation['overall_score']:.1f}/100")
+                            st.write(f"**Confidence Level:** {recommendation['confidence_level']}")
+                            
+                            # Investment Thesis
+                            st.markdown("**Investment Thesis:**")
+                            st.write(recommendation['investment_thesis'])
+                            
+                            # Key Strengths and Concerns
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.markdown("**Key Strengths:**")
+                                for strength in recommendation['key_strengths']:
+                                    st.write(f"• {strength}")
+                            
+                            with col2:
+                                st.markdown("**Key Concerns:**")
+                                for concern in recommendation['key_concerns']:
+                                    st.write(f"• {concern}")
+                            
+                            # Risk and Time Horizon
+                            st.markdown("**Investment Guidelines:**")
+                            st.write(f"• **Risk Level:** {recommendation['risk_reward_assessment']}")
+                            st.write(f"• **Time Horizon:** {recommendation['time_horizon']}")
+                            st.write(f"• **Position Sizing:** {recommendation['position_sizing']}")
+                        
+                        else:
+                            st.error(f"Could not retrieve comprehensive data for {stock_symbol}")
+                
+                except Exception as e:
+                    st.error(f"Analysis failed: {str(e)}")
+        else:
+            st.warning("Please enter a question to get AI analysis")
+    
+    # Sample questions for quick access
+    st.markdown("### 🔥 Popular Questions")
+    
+    sample_questions = [
+        "What are the best halal stocks to buy right now?",
+        "Should I invest in Apple or Microsoft?",
+        "What is the outlook for the technology sector?",
+        "Which dividend stocks are halal compliant?",
+        "How do I identify undervalued stocks?",
+        "What are the risks of investing in Tesla?",
+        "Compare Amazon vs Google for long-term investment",
+        "What sectors will perform best in the next year?"
+    ]
+    
+    cols = st.columns(2)
+    for i, q in enumerate(sample_questions):
+        with cols[i % 2]:
+            if st.button(q, key=f"sample_q_{i}"):
+                st.rerun()
+
+elif page == "📱 Telegram Algo Bot":
+    st.title("📱 Telegram Algorithmic Trading Bot")
+    st.markdown("**Automated AI Buy Signals Every 60 Seconds**")
+    
+    # Bot credentials (pre-configured)
+    BOT_TOKEN = "7839339510:AAFnRHqigiXZHnWF8m2T2Li6iXLPWAw_uQg"
+    CHAT_ID = "5043945231"
+    
+    st.success("**Bot Credentials Configured:**")
+    st.write(f"**Bot Token:** {BOT_TOKEN[:20]}...")
+    st.write(f"**Chat ID:** {CHAT_ID}")
+    
+    # Initialize bot status in session state
+    if 'telegram_bot' not in st.session_state:
+        st.session_state.telegram_bot = None
+        st.session_state.bot_running = False
+    
+    # Bot control section
+    st.markdown("### 🤖 Bot Control Panel")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("🚀 Start Telegram Bot", use_container_width=True):
+            try:
+                if not st.session_state.bot_running:
+                    # Create and start bot
+                    st.session_state.telegram_bot = TelegramAlgoBot(BOT_TOKEN, CHAT_ID)
+                    
+                    # Start bot service in background
+                    import threading
+                    bot_thread = threading.Thread(
+                        target=st.session_state.telegram_bot.start_bot,
+                        daemon=True
+                    )
+                    bot_thread.start()
+                    
+                    st.session_state.bot_running = True
+                    st.success("✅ Telegram Bot Started Successfully!")
+                    st.info("Bot is now monitoring the market and will send buy signals every 60 seconds")
+                else:
+                    st.warning("Bot is already running")
+            except Exception as e:
+                st.error(f"Failed to start bot: {str(e)}")
+    
+    with col2:
+        if st.button("🛑 Stop Telegram Bot", use_container_width=True):
+            try:
+                if st.session_state.bot_running and st.session_state.telegram_bot:
+                    st.session_state.telegram_bot.stop_bot()
+                    st.session_state.bot_running = False
+                    st.session_state.telegram_bot = None
+                    st.success("✅ Telegram Bot Stopped")
+                else:
+                    st.warning("Bot is not running")
+            except Exception as e:
+                st.error(f"Failed to stop bot: {str(e)}")
+    
+    with col3:
+        bot_status = "🟢 Running" if st.session_state.bot_running else "🔴 Stopped"
+        st.metric("Bot Status", bot_status)
+    
+    # Bot Features
+    st.markdown("### 🔥 Bot Features")
+    
+    features = [
+        "**Real-time Market Analysis:** Analyzes market every 60 seconds",
+        "**AI-Powered Signals:** Advanced algorithms for buy signal generation",
+        "**Halal Compliance:** Only recommends AAOIFI-compliant stocks",
+        "**Risk Management:** Includes stop-loss and position sizing",
+        "**Performance Tracking:** Monitors signal accuracy and learning",
+        "**Market Hours:** Active during US market hours (9:30 AM - 4:00 PM ET)",
+        "**Confidence Filtering:** Only sends high-confidence signals (75%+)",
+        "**Technical & Fundamental:** Combined analysis approach"
+    ]
+    
+    for feature in features:
+        st.write(f"✅ {feature}")
+    
+    # Bot Commands
+    st.markdown("### 📱 Telegram Bot Commands")
+    
+    commands_info = """
+    **Available Commands in Telegram:**
+    
+    • `/start` - Start bot monitoring
+    • `/stop` - Stop bot monitoring  
+    • `/status` - Check bot status and performance
+    • `/performance` - View detailed performance metrics
+    • `/analysis [SYMBOL]` - Get comprehensive stock analysis
+    • `/watchlist` - View current stock watchlist
+    • `/help` - Show all available commands
+    
+    **Signal Format:**
+    Each buy signal includes:
+    - Stock symbol and current price
+    - Target price and upside potential
+    - Stop-loss level and risk percentage
+    - AI confidence score
+    - Technical and fundamental scores
+    - Halal compliance status
+    - Detailed reasoning and analysis
+    """
+    
+    st.markdown(commands_info)
+    
+    # Test message functionality
+    st.markdown("### 📤 Test Bot Communication")
+    
+    test_message = st.text_input("Send test message to Telegram:")
+    
+    if st.button("📨 Send Test Message"):
+        if test_message and st.session_state.telegram_bot:
+            try:
+                success = st.session_state.telegram_bot.send_message(test_message)
+                if success:
+                    st.success("✅ Test message sent successfully!")
+                else:
+                    st.error("❌ Failed to send message. Check bot configuration.")
+            except Exception as e:
+                st.error(f"Error sending message: {str(e)}")
+        else:
+            st.warning("Please enter a message and ensure bot is configured")
+    
+    # Market monitoring settings
+    st.markdown("### ⚙️ Bot Configuration")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**Signal Settings:**")
+        st.write("• Signal Frequency: Every 60 seconds")
+        st.write("• Confidence Threshold: 75%+")
+        st.write("• Max Signals per Hour: 10")
+        st.write("• Halal Compliance: Required")
+    
+    with col2:
+        st.markdown("**Market Coverage:**")
+        st.write("• S&P 500 stocks")
+        st.write("• Popular trading stocks")
+        st.write("• Trending momentum stocks")
+        st.write("• Real-time price data")
+    
+    # Disclaimer for Telegram bot
+    st.warning("""
+    **Important Disclaimer for Telegram Bot:**
+    
+    • All signals are AI-generated for educational purposes only
+    • Not financial advice - always conduct your own research
+    • Past performance does not guarantee future results
+    • Consider risk tolerance and investment objectives
+    • Consult qualified financial advisors before investing
+    """)
 
 # Footer
 st.markdown("---")
