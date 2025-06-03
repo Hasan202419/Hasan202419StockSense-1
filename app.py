@@ -11,6 +11,7 @@ from data_fetcher import DataFetcher
 from halal_screener import HalalScreener
 from technical_analysis import TechnicalAnalyzer
 from autonomous_analyzer import AutonomousAnalyzer
+from perpetual_ai_trader import PerpetualAITrader
 
 # Configure Streamlit page
 st.set_page_config(
@@ -23,9 +24,9 @@ st.set_page_config(
 # Initialize classes
 @st.cache_resource
 def get_analyzers():
-    return DataFetcher(), HalalScreener(), TechnicalAnalyzer(), AutonomousAnalyzer()
+    return DataFetcher(), HalalScreener(), TechnicalAnalyzer(), AutonomousAnalyzer(), PerpetualAITrader()
 
-data_fetcher, halal_screener, technical_analyzer, autonomous_analyzer = get_analyzers()
+data_fetcher, halal_screener, technical_analyzer, autonomous_analyzer, ai_trader = get_analyzers()
 
 # Sidebar navigation
 st.sidebar.title("🕌 Halal Stock Analysis")
@@ -38,6 +39,8 @@ page = st.sidebar.selectbox(
         "🔍 Single Stock Analysis", 
         "📊 Halal Stock Screener",
         "🤖 AI Market Analysis",
+        "🔥 Perpetual AI Trader",
+        "🚀 Breakout Detector",
         "💰 Penny Stock Finder",
         "📈 Market Research"
     ]
@@ -646,6 +649,330 @@ elif page == "🤖 AI Market Analysis":
                     
                     else:
                         st.info("No halal-compliant penny stock opportunities found in current analysis.")
+
+elif page == "🔥 Perpetual AI Trader":
+    st.title("🔥 Perpetual AI Trader")
+    st.markdown("### Autonomous Trading System with Continuous Market Monitoring")
+    
+    display_disclaimer()
+    
+    # Trading Configuration
+    st.subheader("⚙️ Trading Configuration")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        trading_mode = st.selectbox(
+            "Trading Mode:",
+            ["Demo Account (Virtual)", "Paper Trading", "Live Trading (Future)"]
+        )
+    
+    with col2:
+        portfolio_size = st.number_input(
+            "Virtual Portfolio Size ($):",
+            min_value=10000, max_value=1000000, value=100000, step=10000
+        )
+    
+    with col3:
+        risk_level = st.selectbox(
+            "Risk Level:",
+            ["Conservative", "Moderate", "Aggressive"]
+        )
+    
+    # Market Universe Selection
+    st.subheader("🌐 Market Universe")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        market_focus = st.multiselect(
+            "Market Focus:",
+            ["S&P 500", "NASDAQ", "Russell 2000", "Growth Stocks", "Value Stocks"],
+            default=["S&P 500", "NASDAQ"]
+        )
+    
+    with col2:
+        max_stocks_monitor = st.number_input(
+            "Max Stocks to Monitor:",
+            min_value=50, max_value=500, value=200, step=50
+        )
+    
+    # Halal Compliance
+    enforce_halal = st.checkbox("Enforce Halal Compliance Only", value=True)
+    
+    # Control buttons
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        start_trading = st.button("🚀 Start AI Trading", type="primary")
+    
+    with col2:
+        stop_trading = st.button("⛔ Stop Trading", type="secondary")
+    
+    with col3:
+        view_performance = st.button("📊 View Performance")
+    
+    # Initialize session state for trader
+    if 'trader_active' not in st.session_state:
+        st.session_state.trader_active = False
+    
+    if start_trading:
+        st.session_state.trader_active = True
+        
+        # Get stock universe based on selection
+        stock_universe = data_fetcher.get_sp500_symbols()[:max_stocks_monitor]
+        
+        # Start perpetual analysis
+        try:
+            ai_trader.start_perpetual_analysis(stock_universe)
+            st.success("AI Trader activated! Continuous market monitoring started.")
+        except Exception as e:
+            st.error(f"Failed to start AI trader: {str(e)}")
+    
+    if stop_trading:
+        st.session_state.trader_active = False
+        ai_trader.monitoring_active = False
+        st.info("AI Trader stopped.")
+    
+    # Real-time Trading Dashboard
+    if st.session_state.trader_active:
+        st.subheader("📈 Live Trading Dashboard")
+        
+        # Performance metrics
+        performance = ai_trader.get_performance_metrics()
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Signals", performance.get('total_trades', 0))
+        with col2:
+            st.metric("Buy Signals", performance.get('buy_signals', 0))
+        with col3:
+            st.metric("Active Positions", performance.get('active_positions', 0))
+        with col4:
+            avg_conf = performance.get('avg_confidence', 0)
+            st.metric("Avg Confidence", f"{avg_conf:.1f}%")
+        
+        # Latest signals
+        st.subheader("🎯 Latest AI Signals")
+        latest_signals = ai_trader.get_latest_signals(10)
+        
+        if latest_signals:
+            signals_data = []
+            for signal in latest_signals:
+                signals_data.append({
+                    'Symbol': signal.symbol,
+                    'Signal': signal.signal_type,
+                    'Confidence': f"{signal.confidence:.1%}",
+                    'Technical Score': f"{signal.technical_score:.1f}",
+                    'Fundamental Score': f"{signal.fundamental_score:.1f}",
+                    'Risk Level': signal.risk_level,
+                    'Target Price': f"${signal.target_price:.2f}",
+                    'Stop Loss': f"${signal.stop_loss:.2f}",
+                    'Timestamp': signal.timestamp.strftime("%H:%M:%S")
+                })
+            
+            signals_df = pd.DataFrame(signals_data)
+            st.dataframe(signals_df, use_container_width=True)
+        else:
+            st.info("No recent signals generated. AI is analyzing the market...")
+        
+        # Active positions
+        st.subheader("💼 Active Positions")
+        active_positions = ai_trader.get_active_positions()
+        
+        if active_positions:
+            positions_data = []
+            for symbol, position in active_positions.items():
+                positions_data.append({
+                    'Symbol': position.symbol,
+                    'Action': position.action,
+                    'Entry Price': f"${position.price:.2f}",
+                    'Quantity': position.quantity,
+                    'Stop Loss': f"${position.stop_loss:.2f}",
+                    'Target': f"${position.target_price:.2f}",
+                    'Confidence': f"{position.confidence:.1%}",
+                    'Entry Time': position.timestamp.strftime("%Y-%m-%d %H:%M")
+                })
+            
+            positions_df = pd.DataFrame(positions_data)
+            st.dataframe(positions_df, use_container_width=True)
+        else:
+            st.info("No active positions. AI is waiting for high-confidence opportunities.")
+        
+        # Auto-refresh every 30 seconds
+        time.sleep(30)
+        st.rerun()
+
+elif page == "🚀 Breakout Detector":
+    st.title("🚀 Breakout Detector")
+    st.markdown("### AI-Powered Early Breakout Detection System")
+    
+    display_disclaimer()
+    
+    # Configuration
+    st.subheader("🔧 Detection Configuration")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        detection_sensitivity = st.selectbox(
+            "Detection Sensitivity:",
+            ["High (More Alerts)", "Medium (Balanced)", "Low (High Confidence Only)"]
+        )
+    
+    with col2:
+        market_cap_filter = st.selectbox(
+            "Market Cap Filter:",
+            ["All Sizes", "Large Cap ($10B+)", "Mid Cap ($2B-$10B)", "Small Cap ($300M-$2B)", "Micro Cap (<$300M)"]
+        )
+    
+    with col3:
+        halal_only = st.checkbox("Halal Compliant Only", value=True)
+    
+    # Breakout timeframe
+    timeframe = st.selectbox(
+        "Breakout Timeframe:",
+        ["1-3 Days", "1 Week", "2 Weeks", "1 Month"]
+    )
+    
+    # Scan controls
+    col1, col2 = st.columns(2)
+    with col1:
+        scan_market = st.button("🔍 Scan for Breakouts", type="primary")
+    with col2:
+        continuous_scan = st.checkbox("Continuous Scanning (Every 5 min)")
+    
+    if scan_market or continuous_scan:
+        with st.spinner("AI scanning market for breakout patterns..."):
+            # Fetch market data
+            market_data = autonomous_analyzer.autonomous_market_scan(150)
+            
+            if not market_data:
+                st.error("Unable to fetch market data. Please check your connection.")
+                st.stop()
+            
+            # Apply halal screening if enabled
+            if halal_only:
+                halal_results = halal_screener.screen_multiple_stocks(market_data)
+                if not halal_results.empty:
+                    compliant_symbols = halal_results[
+                        halal_results['status'].isin(['Likely Compliant', 'Requires Review'])
+                    ]['symbol'].tolist()
+                    market_data = {k: v for k, v in market_data.items() if k in compliant_symbols}
+            
+            # Identify breakout candidates
+            breakout_candidates = ai_trader.identify_breakout_candidates(market_data)
+            
+            if breakout_candidates:
+                st.success(f"Found {len(breakout_candidates)} potential breakout candidates!")
+                
+                # Summary metrics
+                st.subheader("📊 Breakout Analysis Summary")
+                col1, col2, col3, col4 = st.columns(4)
+                
+                with col1:
+                    st.metric("Total Candidates", len(breakout_candidates))
+                
+                with col2:
+                    high_prob = len([c for c in breakout_candidates if c['breakout_score'] >= 85])
+                    st.metric("High Probability", high_prob)
+                
+                with col3:
+                    avg_score = np.mean([c['breakout_score'] for c in breakout_candidates])
+                    st.metric("Avg Breakout Score", f"{avg_score:.1f}")
+                
+                with col4:
+                    vol_surge = np.mean([c['volume_surge'] for c in breakout_candidates])
+                    st.metric("Avg Volume Surge", f"{vol_surge:.1f}%")
+                
+                # Breakout candidates table
+                st.subheader("🎯 Breakout Candidates")
+                
+                # Filter controls
+                col1, col2 = st.columns(2)
+                with col1:
+                    min_breakout_score = st.slider("Min Breakout Score:", 60, 100, 75)
+                with col2:
+                    min_volume_surge = st.slider("Min Volume Surge (%):", 0, 200, 20)
+                
+                # Filter candidates
+                filtered_candidates = [
+                    c for c in breakout_candidates 
+                    if c['breakout_score'] >= min_breakout_score and c['volume_surge'] >= min_volume_surge
+                ]
+                
+                if filtered_candidates:
+                    candidates_data = []
+                    for candidate in filtered_candidates[:20]:  # Top 20
+                        candidates_data.append({
+                            'Symbol': candidate['symbol'],
+                            'Company': candidate['company_name'][:30] + "..." if len(candidate['company_name']) > 30 else candidate['company_name'],
+                            'Current Price': f"${candidate['current_price']:.2f}",
+                            'Breakout Score': f"{candidate['breakout_score']:.1f}",
+                            'Volume Surge': f"{candidate['volume_surge']:.1f}%",
+                            'Consolidation Days': candidate['consolidation_days'],
+                            'Resistance Level': f"${candidate['resistance_level']:.2f}",
+                            'Target Price': f"${candidate['target_price']:.2f}",
+                            'Market Cap': format_currency(candidate['market_cap']),
+                            'Sector': candidate['sector']
+                        })
+                    
+                    candidates_df = pd.DataFrame(candidates_data)
+                    
+                    # Color coding based on breakout score
+                    def highlight_breakout_score(row):
+                        score = float(row['Breakout Score'])
+                        if score >= 90:
+                            return ['background-color: #d4edda'] * len(row)  # Green
+                        elif score >= 80:
+                            return ['background-color: #fff3cd'] * len(row)  # Yellow
+                        else:
+                            return [''] * len(row)
+                    
+                    styled_df = candidates_df.style.apply(highlight_breakout_score, axis=1)
+                    st.dataframe(styled_df, use_container_width=True)
+                    
+                    # Download functionality
+                    create_download_csv(candidates_df, "breakout_candidates")
+                    
+                    # Detailed analysis for selected stock
+                    st.subheader("🔍 Detailed Breakout Analysis")
+                    selected_symbol = st.selectbox(
+                        "Select stock for detailed analysis:",
+                        options=[c['symbol'] for c in filtered_candidates]
+                    )
+                    
+                    if selected_symbol:
+                        selected_candidate = next(c for c in filtered_candidates if c['symbol'] == selected_symbol)
+                        
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            st.markdown("**Breakout Metrics:**")
+                            st.markdown(f"**Breakout Score:** {selected_candidate['breakout_score']:.1f}/100")
+                            st.markdown(f"**Volume Surge:** {selected_candidate['volume_surge']:.1f}%")
+                            st.markdown(f"**Consolidation Period:** {selected_candidate['consolidation_days']} days")
+                            st.markdown(f"**Current Price:** ${selected_candidate['current_price']:.2f}")
+                            st.markdown(f"**Resistance Level:** ${selected_candidate['resistance_level']:.2f}")
+                        
+                        with col2:
+                            st.markdown("**Investment Potential:**")
+                            st.markdown(f"**Target Price:** ${selected_candidate['target_price']:.2f}")
+                            upside = ((selected_candidate['target_price'] - selected_candidate['current_price']) / selected_candidate['current_price']) * 100
+                            st.markdown(f"**Potential Upside:** {upside:.1f}%")
+                            st.markdown(f"**Market Cap:** {format_currency(selected_candidate['market_cap'])}")
+                            st.markdown(f"**Sector:** {selected_candidate['sector']}")
+                        
+                        # Trading recommendation
+                        if selected_candidate['breakout_score'] >= 85:
+                            st.success("🟢 Strong Breakout Candidate - Consider for watchlist")
+                        elif selected_candidate['breakout_score'] >= 75:
+                            st.warning("🟡 Moderate Breakout Potential - Monitor closely")
+                        else:
+                            st.info("🔵 Developing Pattern - Early stage detection")
+                
+                else:
+                    st.info("No candidates match the current filter criteria. Try adjusting the filters.")
+            
+            else:
+                st.info("No breakout patterns detected in current market scan. Try again later or adjust sensitivity.")
 
 elif page == "💰 Penny Stock Finder":
     st.title("💰 Penny Stock Finder")
