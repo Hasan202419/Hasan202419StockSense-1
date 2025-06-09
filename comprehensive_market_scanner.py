@@ -315,9 +315,6 @@ class ComprehensiveMarketScanner:
             
         except Exception as e:
             return {'error': str(e)}
-                all_stocks['NASDAQ'] = nasdaq_data['ACT Symbol'].dropna().tolist()
-            except:
-                pass
             
             # Backup comprehensive list
             backup_stocks = [
