@@ -1041,95 +1041,132 @@ elif page == "🌎 Comprehensive Market Scanner":
                                 st.write(f"• **{spike['symbol']}** {direction}: {spike['price_change']:.1f}% move")
 
 elif page == "🔐 Secrets & API Configuration":
-    st.title("🔐 Secrets & API Configuration")
-    st.markdown("### Configure API Keys for Advanced Market Analysis")
+    st.title("🔐 API Keys va Secrets Configuration")
+    st.markdown("### JARVIS darajasidagi bozor tahlili uchun API kalitlarini sozlash")
     
     # Display current configuration status
     secrets_status = secrets_manager.display_secrets_status()
     
     # Show available capabilities
     st.markdown("---")
-    st.subheader("🎯 Available System Capabilities")
+    st.subheader("🎯 Mavjud tizim imkoniyatlari")
     
     capabilities = secrets_manager.get_configured_capabilities()
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("**Market Data & Analysis:**")
-        st.write(f"{'✅' if capabilities['advanced_market_data'] else '❌'} Advanced Market Data (Alpha Vantage)")
-        st.write(f"{'✅' if capabilities['real_time_data'] else '❌'} Real-time Stock Data (Finnhub)")
-        st.write(f"{'✅' if capabilities['options_flow_analysis'] else '❌'} Options Flow Analysis (Polygon)")
-        st.write(f"{'✅' if capabilities['economic_calendar'] else '❌'} Economic Calendar (Quandl)")
+        st.markdown("**Bozor ma'lumotlari va tahlil:**")
+        st.write(f"{'✅' if capabilities['advanced_market_data'] else '❌'} Ilg'or bozor ma'lumotlari (Alpha Vantage)")
+        st.write(f"{'✅' if capabilities['real_time_data'] else '❌'} Real-time stock ma'lumotlari (Finnhub)")
+        st.write(f"{'✅' if capabilities['options_flow_analysis'] else '❌'} Options Flow tahlili (Polygon)")
+        st.write(f"{'✅' if capabilities['economic_calendar'] else '❌'} Iqtisodiy kalendar (Quandl)")
     
     with col2:
-        st.markdown("**AI & Notifications:**")
-        st.write(f"{'✅' if capabilities['news_sentiment'] else '❌'} News Sentiment Analysis")
-        st.write(f"{'✅' if capabilities['ai_enhanced_analysis'] else '❌'} AI-Enhanced Analysis (OpenAI)")
-        st.write(f"{'✅' if capabilities['telegram_alerts'] else '❌'} Telegram Alerts")
-        st.write(f"{'✅' if capabilities['discord_alerts'] else '❌'} Discord Alerts")
+        st.markdown("**AI va bildirishnomalar:**")
+        st.write(f"{'✅' if capabilities['news_sentiment'] else '❌'} Yangiliklar sentiment tahlili")
+        st.write(f"{'✅' if capabilities['ai_enhanced_analysis'] else '❌'} AI-Enhanced tahlil (OpenAI)")
+        st.write(f"{'✅' if capabilities['telegram_alerts'] else '❌'} Telegram signallari")
+        st.write(f"{'✅' if capabilities['discord_alerts'] else '❌'} Discord signallari")
     
-    # Configuration guide
+    # API Setup Guide
     st.markdown("---")
-    st.subheader("📋 Step-by-Step Configuration Guide")
-    
-    with st.expander("🔑 How to Configure API Keys", expanded=True):
-        st.markdown("""
-        **Step 1: Access Replit Secrets**
-        1. Look for the "Secrets" tab in your Replit workspace sidebar
-        2. Click on "Secrets" (lock icon)
-        
-        **Step 2: Add Required API Keys**
-        For each API key needed:
-        1. Click "New Secret"
-        2. Enter the exact key name (case-sensitive)
-        3. Paste your API key value
-        4. Click "Add Secret"
-        
-        **Step 3: Get API Keys from Providers**
-        """)
-        
-        st.markdown("**🎯 Priority APIs for Maximum Functionality:**")
-        st.code("""
-        1. ALPHA_VANTAGE_API_KEY - Free tier available at alphavantage.co
-        2. FINNHUB_API_KEY - Free tier at finnhub.io  
-        3. NEWS_API_KEY - Free tier at newsapi.org
-        4. TELEGRAM_BOT_TOKEN - Create bot via @BotFather on Telegram
-        5. TELEGRAM_CHAT_ID - Your Telegram user/chat ID
-        """)
+    secrets_manager.setup_api_key_guide()
     
     # Test API connections
     st.markdown("---")
-    st.subheader("🧪 Test API Connections")
+    st.subheader("🧪 API ulanishlarini sinash")
     
-    if st.button("🔍 Test All Configured APIs"):
-        with st.spinner("Testing API connections..."):
-            test_results = {}
+    if st.button("🔍 Barcha API larni sinash", use_container_width=True):
+        with st.spinner("API ulanishlar sinovdan o'tkazilmoqda..."):
+            test_results = secrets_manager.test_all_apis()
+    
+    # Generate sample configuration
+    st.markdown("---")
+    secrets_manager.generate_sample_secrets()
+    
+    # Quick setup for Telegram bot
+    st.markdown("---")
+    st.subheader("📱 Telegram Bot tezkor sozlash")
+    
+    with st.expander("🤖 Telegram Bot yaratish", expanded=False):
+        st.markdown("""
+        **Telegram Bot yaratish:**
+        
+        1. **Telegram ochib @BotFather ni toping**
+        2. **/newbot** buyrug'ini yuboring
+        3. **Bot nomi kiriting** (masalan: "My Trading Bot")
+        4. **Bot username kiriting** (masalan: "my_trading_bot")
+        5. **Bot Token ni nusxalang** (masalan: 1234567890:ABCdefGHIjklMNOpqrsTUVwxyz)
+        
+        **Chat ID olish:**
+        
+        1. **@userinfobot ga yozing** yoki
+        2. **@get_id_bot ga yozing**
+        3. **Chat ID ni nusxalang** (masalan: 123456789)
+        
+        **Replit Secrets ga qo'shish:**
+        
+        • Key: `TELEGRAM_BOT_TOKEN` → Value: Bot token
+        • Key: `TELEGRAM_CHAT_ID` → Value: Chat ID
+        """)
+        
+        if st.button("✅ Telegram Bot konfiguratsiyasini sinash"):
+            bot_token = secrets_manager.get_secret('TELEGRAM_BOT_TOKEN')
+            chat_id = secrets_manager.get_secret('TELEGRAM_CHAT_ID')
             
-            # Test each configured API
-            for api_name, is_configured in secrets_status.items():
-                if is_configured:
-                    test_results[api_name] = "✅ Connected"
-                else:
-                    test_results[api_name] = "❌ Not Configured"
-            
-            # Display test results
-            st.markdown("**API Connection Test Results:**")
-            for api, status in test_results.items():
-                st.write(f"{status} {api}")
+            if bot_token and chat_id:
+                try:
+                    import requests
+                    test_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                    data = {
+                        'chat_id': chat_id,
+                        'text': '🎉 Telegram Bot muvaffaqiyatli sozlandi!\n\nAI Trading signallari tayyor!'
+                    }
+                    response = requests.post(test_url, json=data, timeout=10)
+                    
+                    if response.status_code == 200:
+                        st.success("✅ Telegram Bot muvaffaqiyatli ishlayapti!")
+                        st.balloons()
+                    else:
+                        st.error(f"❌ Telegram Bot xatosi: {response.text}")
+                except Exception as e:
+                    st.error(f"❌ Ulanish xatosi: {str(e)}")
+            else:
+                st.warning("⚠️ TELEGRAM_BOT_TOKEN va TELEGRAM_CHAT_ID talab qilinadi")
     
     # System enhancement recommendations
     st.markdown("---")
-    st.info("""
-    💡 **Pro Tip:** Configure at least Alpha Vantage and Finnhub APIs to unlock:
-    - Real-time market data for all US stocks
-    - Advanced technical indicators
-    - News sentiment analysis
-    - Insider trading detection
-    - Options flow monitoring
+    st.success("""
+    🚀 **JARVIS darajasidagi tahlil uchun:**
     
-    This will enable the JARVIS-level analysis described in your requirements!
+    **Asosiy API lar (75% funksiyalar):**
+    • Alpha Vantage API - Real-time bozor ma'lumotlari
+    • Finnhub API - Keng qamrovli stock ma'lumotlari  
+    • News API - Yangiliklar sentiment tahlili
+    
+    **Qo'shimcha API lar (100% funksiyalar):**
+    • Polygon API - Options flow va hajm tahlili
+    • OpenAI API - AI-Enhanced prognozlash
+    • Telegram Bot - Real-time signallar
+    
+    Bu sizning talablaringizda ko'rsatilgan JARVIS darajasidagi tahlilni yoqadi!
     """)
+    
+    # Priority action items
+    if not any(capabilities.values()):
+        st.warning("""
+        ⚠️ **Birinchi navbatda:**
+        
+        1. **Alpha Vantage** - alphavantage.co saytiga boring va API kalit oling
+        2. **Replit Secrets** - API kalitni `ALPHA_VANTAGE_API_KEY` nomi bilan qo'shing
+        3. **Dasturni qayta yuklang** - Real-time ma'lumotlar ishlashini boshlaydi
+        
+        Bu 5 daqiqada amalga oshiriladi va tizimni to'liq ishlaydigan holatga keltiradi!
+        """)
+    
+    st.markdown("---")
+    st.info("💡 Barcha API kalitlar xavfsiz Replit Secrets da saqlanadi va shifrlanadi.")
 
 elif page == "🔥 Perpetual AI Trader":
     st.title("🔥 Perpetual AI Trader")
