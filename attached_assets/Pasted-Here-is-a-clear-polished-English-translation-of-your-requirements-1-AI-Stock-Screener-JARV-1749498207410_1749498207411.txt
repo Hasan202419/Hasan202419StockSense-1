@@ -1,0 +1,54 @@
+Here is a clear, polished English translation of your requirements:
+
+1. **AI Stock Screener & JARVIS Signals**
+
+   * Automatically monitor **news spikes**, **volume increases**, **call-option volume surges**, etc.
+   * Pull that data into **AI JARVIS**, refine it, and generate **real-time Buy signals** for stocks.
+   * Provide these signals across all trading styles—**day trading**, **swing**, and other timeframes.
+
+2. **Full U.S. Market Coverage**
+
+   * Scan **every U.S. stock**, including **penny stocks**, so that **no opportunity is missed**.
+
+3. **Explosive Penny Stock Detection**
+
+   * Identify penny stocks poised to **surge 100% or more**.
+   * Catch them **before** they take off, using automated research from **AI JARVIS** and the **AI Stock Screener**.
+   * Analyze why they’re about to break out, then deliver **Buy signals**.
+
+4. **Bear-Market Analysis & Signals**
+
+   * If the U.S. market falls (indices turn red), automatically determine **why** (Fed decisions, earnings misses, political events, etc.).
+   * Conduct research on the causes and then issue **appropriate signals** (e.g., “hold,” “buy the dip,” or “sell”).
+
+5. **Professional-Grade Research Engine**
+
+   * Both AI JARVIS and the Stock Screener should behave like **top traders, investors, and analysts**—knowing exactly what to do in any market condition.
+
+6. **Self-Learning & Continuous Improvement**
+
+   * The AIs should **learn from every mistake**, correct themselves, and evolve—becoming ever more accurate over time.
+
+7. **Global & U.S. Macro Analysis**
+
+   * Continuously monitor and analyze **global stock markets**, U.S. economic and political developments.
+   * Feed those insights into stock analyses and signals.
+
+8. **U.S. Economic Calendar Integration**
+
+   * Analyze key U.S. economic events (CPI, Fed rate decisions, employment data, etc.).
+   * Understand how these events impact **indices** and **individual stock prices**, and adjust Buy/Sell signals accordingly.
+
+9. **Market Psychology Modeling**
+
+   * Study **fear, greed, euphoria, panic** dynamics.
+   * Use sentiment insights to refine signals (e.g., “buy when fear peaks,” “sell when greed runs high”).
+
+10. **Telegram Bot Integration**
+
+* The Telegram bot is already connected (Token & Chat ID provided).
+* Verify the connection and implement all necessary bot commands so that signals, alerts, and updates are automatically delivered to your Telegram channel or group.
+
+---
+
+Let me know if you’d like any further adjustments or additional sections translated!
