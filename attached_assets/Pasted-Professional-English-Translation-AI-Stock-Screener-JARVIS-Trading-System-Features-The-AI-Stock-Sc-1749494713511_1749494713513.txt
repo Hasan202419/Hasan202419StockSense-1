@@ -1,0 +1,58 @@
+Professional English Translation: AI Stock Screener & JARVIS Trading System Features
+The AI Stock Screener must automatically detect:
+
+Sudden news spikes,
+
+Unusual volume increases,
+
+And high call options activity.
+Based on these factors, it should provide refined Buy signals from AI JARVIS for stocks likely to rise after purchase.
+It should generate signals for day trading, swing trading, and long-term investing — covering different timeframes and strategies.
+
+The system must scan all U.S. stocks, including all penny stocks, ensuring no stock is left behind. Every ticker in the U.S. market should be analyzed.
+
+It must detect penny stocks that may skyrocket by 100% or more — before they explode.
+AI JARVIS and the AI Stock Screener should automatically conduct research across the market to determine:
+
+Why certain stocks are surging,
+
+What is driving the sudden movement,
+
+And generate strong Buy signals based on that analysis.
+
+When the U.S. stock market crashes or major indices turn red, the AI must:
+
+Analyze the reasons behind the drop,
+
+Conduct research,
+
+And provide signals accordingly — whether to Buy, Sell, or Wait.
+
+Both AI Stock Screener and AI JARVIS must function like professional traders, investors, and analysts —
+They should automatically decide what action to take based on market movements, without manual input.
+
+The AI systems should be self-learning.
+They must constantly:
+
+Conduct research,
+
+Learn from past mistakes,
+
+And evolve over time to become smarter and more accurate with their signals.
+
+They must monitor the global stock market and especially the U.S. financial and political conditions.
+Both AIs should analyze how global and national economic changes are impacting stock prices.
+
+The system must analyze the U.S. economic calendar —
+Events like CPI, FOMC, interest rate hikes, and jobs data greatly affect market indexes and stock prices.
+Based on these macroeconomic factors, AI JARVIS and the AI Stock Screener must:
+
+Learn and adapt,
+
+Improve their signals,
+
+And give Buy alerts when timing is right.
+
+The AIs must also understand and analyze market psychology,
+including Greed and Fear —
+These are key drivers of price action, and must be considered in the decision-making process.
