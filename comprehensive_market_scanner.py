@@ -314,9 +314,6 @@ class ComprehensiveMarketScanner:
             return unusual_activity
             
         except Exception as e:
-            return {'error': str(e)}
-            
-            except Exception as e:
             st.error(f"Error fetching stock symbols: {str(e)}")
             
         # Backup comprehensive list
