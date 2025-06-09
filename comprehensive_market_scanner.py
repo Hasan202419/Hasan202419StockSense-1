@@ -314,7 +314,7 @@ class ComprehensiveMarketScanner:
             return unusual_activity
             
         except Exception as e:
-            return {'error': str(e)}|')
+            return {'error': str(e)}
                 all_stocks['NASDAQ'] = nasdaq_data['ACT Symbol'].dropna().tolist()
             except:
                 pass
