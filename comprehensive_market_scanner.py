@@ -316,8 +316,11 @@ class ComprehensiveMarketScanner:
         except Exception as e:
             return {'error': str(e)}
             
-            # Backup comprehensive list
-            backup_stocks = [
+            except Exception as e:
+            st.error(f"Error fetching stock symbols: {str(e)}")
+            
+        # Backup comprehensive list
+        backup_stocks = [
                 # Major indices
                 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'BRK-B',
                 'JPM', 'JNJ', 'V', 'WMT', 'PG', 'UNH', 'HD', 'MA', 'BAC', 'DIS',
@@ -364,26 +367,23 @@ class ComprehensiveMarketScanner:
             ]
             
             # Combine all sources
-            all_symbols = []
-            for exchange, symbols in all_stocks.items():
+        all_symbols = []
+        for exchange, symbols in all_stocks.items():
+            if isinstance(symbols, list):
                 all_symbols.extend(symbols)
-            all_symbols.extend(backup_stocks)
-            
-            # Remove duplicates and clean
-            all_symbols = list(set([s.upper().strip() for s in all_symbols if s and len(s) <= 5]))
-            
-            # Categorize by estimated market cap (simplified)
-            categorized = {
-                'ALL_STOCKS': all_symbols,
-                'ESTIMATED_COUNT': len(all_symbols),
-                'MAJOR_EXCHANGES': all_stocks
-            }
-            
-            return categorized
-            
-        except Exception as e:
-            st.warning(f"Using fallback stock list: {str(e)}")
-            return {'ALL_STOCKS': backup_stocks, 'ESTIMATED_COUNT': len(backup_stocks)}
+        all_symbols.extend(backup_stocks)
+        
+        # Remove duplicates and clean
+        all_symbols = list(set([s.upper().strip() for s in all_symbols if s and len(s) <= 5]))
+        
+        # Return consistent structure
+        return {
+            'NYSE': all_stocks.get('NYSE', []),
+            'NASDAQ': all_stocks.get('NASDAQ', []),
+            'POPULAR': backup_stocks,
+            'ALL_STOCKS': all_symbols,
+            'ESTIMATED_COUNT': len(all_symbols)
+        }
     
     def scan_all_us_market(self, max_concurrent: int = 10) -> Dict:
         """Scan the ENTIRE US stock market for opportunities"""
@@ -391,7 +391,19 @@ class ComprehensiveMarketScanner:
         
         # Get all US stocks
         stock_data = self.get_all_us_stock_symbols()
-        all_symbols = stock_data['ALL_STOCKS']
+        
+        # Combine all stock symbols from different exchanges
+        all_symbols = []
+        for exchange, symbols in stock_data.items():
+            if exchange not in ['ESTIMATED_COUNT', 'MAJOR_EXCHANGES'] and isinstance(symbols, list):
+                all_symbols.extend(symbols)
+        
+        # If no symbols found, use popular stocks fallback
+        if not all_symbols:
+            all_symbols = stock_data.get('POPULAR', [
+                'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'NFLX',
+                'AMD', 'INTC', 'CRM', 'ADBE', 'PYPL', 'COST', 'AVGO', 'TXN'
+            ])
         
         st.success(f"📊 Found {len(all_symbols)} US stocks to analyze")
         
