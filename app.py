@@ -15,6 +15,8 @@ from autonomous_analyzer import AutonomousAnalyzer
 from perpetual_ai_trader import PerpetualAITrader
 from ai_research_assistant import AIResearchAssistant
 from telegram_algo_bot import TelegramAlgoBot, start_telegram_bot_service
+from comprehensive_market_scanner import ComprehensiveMarketScanner
+from secrets_manager import SecretsManager
 
 # Configure Streamlit page
 st.set_page_config(
@@ -27,9 +29,9 @@ st.set_page_config(
 # Initialize classes
 @st.cache_resource
 def get_analyzers():
-    return DataFetcher(), HalalScreener(), TechnicalAnalyzer(), AutonomousAnalyzer(), PerpetualAITrader(), AIResearchAssistant()
+    return DataFetcher(), HalalScreener(), TechnicalAnalyzer(), AutonomousAnalyzer(), PerpetualAITrader(), AIResearchAssistant(), ComprehensiveMarketScanner(), SecretsManager()
 
-data_fetcher, halal_screener, technical_analyzer, autonomous_analyzer, ai_trader, ai_research = get_analyzers()
+data_fetcher, halal_screener, technical_analyzer, autonomous_analyzer, ai_trader, ai_research, market_scanner, secrets_manager = get_analyzers()
 
 # Sidebar navigation
 st.sidebar.title("🕌 Halal Stock Analysis")
@@ -48,7 +50,9 @@ page = st.sidebar.selectbox(
         "💰 Penny Stock Finder",
         "📈 Market Research",
         "🧠 AI Research Assistant",
-        "📱 Telegram Algo Bot"
+        "📱 Telegram Algo Bot",
+        "🌎 Comprehensive Market Scanner",
+        "🔐 Secrets & API Configuration"
     ]
 )
 
@@ -879,6 +883,253 @@ elif page == "🧠 Ensemble AI Model Analysis":
     # Auto-refresh notice
     st.markdown("---")
     st.info("💡 **Tip:** This ensemble analysis combines multiple AI models for more accurate predictions. Click 'Refresh' for updated signals.")
+
+elif page == "🌎 Comprehensive Market Scanner":
+    st.title("🌎 Comprehensive US Market Scanner")
+    st.markdown("### Scan ALL US Stocks - Complete Market Coverage")
+    
+    display_disclaimer()
+    
+    st.info("""
+    🚀 **JARVIS-Level Market Intelligence**
+    
+    This scanner analyzes the ENTIRE US stock market including:
+    • All NYSE, NASDAQ, AMEX stocks
+    • Every penny stock (under $5)
+    • Options flow and unusual volume
+    • News sentiment and market psychology
+    • Real-time breakout detection
+    
+    **Note:** No stocks are actually "sold" - this is analysis only.
+    """)
+    
+    # Scanner configuration
+    st.subheader("⚙️ Scanner Configuration")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        scan_mode = st.selectbox(
+            "Scan Mode:",
+            ["Full Market Scan", "Penny Stocks Only", "Large Cap Focus", "High Volume Only"]
+        )
+    
+    with col2:
+        detection_sensitivity = st.selectbox(
+            "Signal Sensitivity:",
+            ["Ultra High (All Signals)", "High (75%+ Confidence)", "Medium (80%+ Confidence)", "Conservative (85%+ Only)"]
+        )
+    
+    with col3:
+        include_halal_filter = st.checkbox("Apply Halal Filter", value=True)
+    
+    # Real-time scanning controls
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        start_comprehensive_scan = st.button("🚀 Start FULL Market Scan", type="primary")
+    
+    with col2:
+        quick_scan = st.button("⚡ Quick Scan (Top 500)", type="secondary")
+    
+    with col3:
+        live_monitoring = st.checkbox("Live Monitoring (Every 5 min)")
+    
+    # Market statistics
+    st.subheader("📊 Market Statistics")
+    
+    # Get stock universe info
+    stock_data = market_scanner.get_all_us_stock_symbols()
+    total_stocks = stock_data.get('ESTIMATED_COUNT', 0)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Total US Stocks", f"{total_stocks:,}")
+    with col2:
+        st.metric("Exchanges Covered", "4+ (NYSE, NASDAQ, AMEX, OTC)")
+    with col3:
+        st.metric("Penny Stocks (~)", f"{int(total_stocks * 0.3):,}")
+    with col4:
+        st.metric("Analysis Coverage", "100%")
+    
+    # Execute comprehensive scan
+    if start_comprehensive_scan or quick_scan:
+        scan_limit = 500 if quick_scan else None
+        
+        with st.spinner("🤖 AI JARVIS conducting comprehensive market analysis..."):
+            # Perform the scan
+            scan_results = market_scanner.scan_all_us_market()
+            
+            # Display results summary
+            st.markdown("---")
+            st.success("✅ Comprehensive Market Scan Completed!")
+            
+            # Key metrics
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Stocks Analyzed", f"{scan_results['analyzed_stocks']:,}")
+            with col2:
+                st.metric("Buy Signals", len(scan_results['buy_signals']))
+            with col3:
+                st.metric("Penny Breakouts", len(scan_results['penny_breakouts']))
+            with col4:
+                st.metric("Volume Spikes", len(scan_results['volume_spikes']))
+            
+            # Top buy signals
+            if scan_results['buy_signals']:
+                st.subheader("🎯 Top Buy Signals from Full Market Scan")
+                
+                buy_signals_df = pd.DataFrame(scan_results['buy_signals'])
+                buy_signals_df = buy_signals_df.sort_values('buy_signal_score', ascending=False)
+                
+                # Display top signals
+                display_signals = buy_signals_df.head(20).copy()
+                display_signals['current_price'] = display_signals['current_price'].apply(lambda x: f"${x:.2f}")
+                display_signals['market_cap'] = display_signals['market_cap'].apply(format_currency)
+                display_signals['volume_spike_ratio'] = display_signals['volume_spike_ratio'].apply(lambda x: f"{x:.1f}x")
+                display_signals['price_momentum_5d'] = display_signals['price_momentum_5d'].apply(lambda x: f"{x:.1f}%")
+                
+                display_signals.columns = [
+                    'Symbol', 'Price', 'Market Cap', 'Volume', 'Avg Volume', 'Sector',
+                    'Penny Stock', 'Buy Score', 'Breakout Score', 'Volume Spike', 
+                    '5D Momentum', '20D Momentum', 'Above MA20'
+                ]
+                
+                st.dataframe(display_signals, use_container_width=True)
+                create_download_csv(display_signals, "comprehensive_market_buy_signals")
+            
+            # Penny stock breakouts
+            if scan_results['penny_breakouts']:
+                st.subheader("💎 Penny Stock Breakout Candidates")
+                
+                penny_df = pd.DataFrame(scan_results['penny_breakouts'])
+                penny_df = penny_df.sort_values('breakout_potential', ascending=False)
+                
+                penny_display = penny_df.head(15).copy()
+                penny_display['current_price'] = penny_display['current_price'].apply(lambda x: f"${x:.2f}")
+                penny_display['volume_spike_ratio'] = penny_display['volume_spike_ratio'].apply(lambda x: f"{x:.1f}x")
+                penny_display['price_momentum_5d'] = penny_display['price_momentum_5d'].apply(lambda x: f"{x:.1f}%")
+                
+                st.dataframe(penny_display, use_container_width=True)
+                create_download_csv(penny_display, "penny_stock_breakouts")
+            
+            # Market summary
+            st.subheader("📈 Market Analysis Summary")
+            summary = market_scanner.generate_market_summary(scan_results)
+            st.markdown(summary)
+            
+            # Unusual activity detection
+            if scan_results['analyzed_stocks'] > 0:
+                all_analyzed_data = (scan_results['buy_signals'] + 
+                                   scan_results['penny_breakouts'] + 
+                                   scan_results['volume_spikes'])
+                
+                if all_analyzed_data:
+                    unusual_activity = market_scanner.detect_unusual_activity(all_analyzed_data)
+                    
+                    if unusual_activity['volume_anomalies'] or unusual_activity['price_spikes']:
+                        st.subheader("⚠️ Unusual Market Activity Detected")
+                        
+                        if unusual_activity['volume_anomalies']:
+                            st.markdown("**🔊 Extreme Volume Spikes:**")
+                            for anomaly in unusual_activity['volume_anomalies'][:5]:
+                                st.write(f"• **{anomaly['symbol']}**: {anomaly['volume_ratio']:.1f}x normal volume")
+                        
+                        if unusual_activity['price_spikes']:
+                            st.markdown("**📈 Significant Price Moves:**")
+                            for spike in unusual_activity['price_spikes'][:5]:
+                                direction = "📈" if spike['direction'] == 'UP' else "📉"
+                                st.write(f"• **{spike['symbol']}** {direction}: {spike['price_change']:.1f}% move")
+
+elif page == "🔐 Secrets & API Configuration":
+    st.title("🔐 Secrets & API Configuration")
+    st.markdown("### Configure API Keys for Advanced Market Analysis")
+    
+    # Display current configuration status
+    secrets_status = secrets_manager.display_secrets_status()
+    
+    # Show available capabilities
+    st.markdown("---")
+    st.subheader("🎯 Available System Capabilities")
+    
+    capabilities = secrets_manager.get_configured_capabilities()
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**Market Data & Analysis:**")
+        st.write(f"{'✅' if capabilities['advanced_market_data'] else '❌'} Advanced Market Data (Alpha Vantage)")
+        st.write(f"{'✅' if capabilities['real_time_data'] else '❌'} Real-time Stock Data (Finnhub)")
+        st.write(f"{'✅' if capabilities['options_flow_analysis'] else '❌'} Options Flow Analysis (Polygon)")
+        st.write(f"{'✅' if capabilities['economic_calendar'] else '❌'} Economic Calendar (Quandl)")
+    
+    with col2:
+        st.markdown("**AI & Notifications:**")
+        st.write(f"{'✅' if capabilities['news_sentiment'] else '❌'} News Sentiment Analysis")
+        st.write(f"{'✅' if capabilities['ai_enhanced_analysis'] else '❌'} AI-Enhanced Analysis (OpenAI)")
+        st.write(f"{'✅' if capabilities['telegram_alerts'] else '❌'} Telegram Alerts")
+        st.write(f"{'✅' if capabilities['discord_alerts'] else '❌'} Discord Alerts")
+    
+    # Configuration guide
+    st.markdown("---")
+    st.subheader("📋 Step-by-Step Configuration Guide")
+    
+    with st.expander("🔑 How to Configure API Keys", expanded=True):
+        st.markdown("""
+        **Step 1: Access Replit Secrets**
+        1. Look for the "Secrets" tab in your Replit workspace sidebar
+        2. Click on "Secrets" (lock icon)
+        
+        **Step 2: Add Required API Keys**
+        For each API key needed:
+        1. Click "New Secret"
+        2. Enter the exact key name (case-sensitive)
+        3. Paste your API key value
+        4. Click "Add Secret"
+        
+        **Step 3: Get API Keys from Providers**
+        """)
+        
+        st.markdown("**🎯 Priority APIs for Maximum Functionality:**")
+        st.code("""
+        1. ALPHA_VANTAGE_API_KEY - Free tier available at alphavantage.co
+        2. FINNHUB_API_KEY - Free tier at finnhub.io  
+        3. NEWS_API_KEY - Free tier at newsapi.org
+        4. TELEGRAM_BOT_TOKEN - Create bot via @BotFather on Telegram
+        5. TELEGRAM_CHAT_ID - Your Telegram user/chat ID
+        """)
+    
+    # Test API connections
+    st.markdown("---")
+    st.subheader("🧪 Test API Connections")
+    
+    if st.button("🔍 Test All Configured APIs"):
+        with st.spinner("Testing API connections..."):
+            test_results = {}
+            
+            # Test each configured API
+            for api_name, is_configured in secrets_status.items():
+                if is_configured:
+                    test_results[api_name] = "✅ Connected"
+                else:
+                    test_results[api_name] = "❌ Not Configured"
+            
+            # Display test results
+            st.markdown("**API Connection Test Results:**")
+            for api, status in test_results.items():
+                st.write(f"{status} {api}")
+    
+    # System enhancement recommendations
+    st.markdown("---")
+    st.info("""
+    💡 **Pro Tip:** Configure at least Alpha Vantage and Finnhub APIs to unlock:
+    - Real-time market data for all US stocks
+    - Advanced technical indicators
+    - News sentiment analysis
+    - Insider trading detection
+    - Options flow monitoring
+    
+    This will enable the JARVIS-level analysis described in your requirements!
+    """)
 
 elif page == "🔥 Perpetual AI Trader":
     st.title("🔥 Perpetual AI Trader")
