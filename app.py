@@ -43,6 +43,7 @@ page = st.sidebar.selectbox(
         "🏠 Home",
         "🔍 Single Stock Analysis", 
         "📊 Halal Stock Screener",
+        "🕌 Halal Investment Hub",
         "🤖 AI Market Analysis",
         "🧠 Ensemble AI Model Analysis",
         "🔥 Perpetual AI Trader",
@@ -405,6 +406,281 @@ elif page == "📊 Halal Stock Screener":
                                 st.warning(f"⚠️ {issue}")
             else:
                 st.info("No stocks match the selected filters.")
+
+elif page == "🕌 Halal Investment Hub":
+    st.title("🕌 Halal Investment Hub")
+    st.markdown("### Comprehensive Shariah-Compliant Investment Analysis")
+    
+    # Display Islamic investment principles
+    with st.expander("📖 Islamic Investment Principles", expanded=False):
+        st.markdown("""
+        **Core Islamic Finance Principles:**
+        
+        🚫 **Prohibited (Haram) Activities:**
+        - Riba (Interest-based transactions)
+        - Gambling and speculation
+        - Alcohol and tobacco
+        - Adult entertainment
+        - Conventional banking and insurance
+        - Weapons and defense
+        
+        ✅ **Permitted (Halal) Business Activities:**
+        - Technology and innovation
+        - Healthcare and pharmaceuticals
+        - Retail and consumer goods
+        - Manufacturing and industrials
+        - Utilities and infrastructure
+        - Food and beverages (halal)
+        
+        📊 **AAOIFI Financial Screening Criteria:**
+        - Debt to market cap ratio ≤ 33%
+        - Cash and interest-bearing securities ≤ 33%
+        - Interest income ≤ 5% of total income
+        - Non-compliant income ≤ 5%
+        """)
+    
+    # Analysis configuration
+    st.subheader("⚙️ Halal Analysis Configuration")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        analysis_scope = st.selectbox(
+            "Analysis Scope:",
+            ["S&P 500 Halal Screening", "NASDAQ Halal Focus", "All Market Halal Scan", "Custom Halal List"]
+        )
+    
+    with col2:
+        compliance_level = st.selectbox(
+            "Compliance Standard:",
+            ["AAOIFI Standard", "Conservative (Strict)", "Moderate", "Scholar Review Required"]
+        )
+    
+    with col3:
+        investment_focus = st.selectbox(
+            "Investment Focus:",
+            ["All Categories", "Dividend Income", "Growth Stocks", "Penny Stocks", "Large Cap Only"]
+        )
+    
+    # Custom stock list input
+    if analysis_scope == "Custom Halal List":
+        custom_symbols = st.text_area(
+            "Enter stock symbols for halal analysis:",
+            placeholder="AAPL, MSFT, GOOGL, AMZN, etc."
+        )
+        symbols_list = [s.strip().upper() for s in custom_symbols.split(",") if s.strip()]
+    else:
+        symbols_list = data_fetcher.get_sp500_symbols()[:200]  # Comprehensive analysis
+    
+    # Start halal analysis
+    analyze_btn = st.button("🕌 Start Comprehensive Halal Analysis", type="primary")
+    
+    if analyze_btn and symbols_list:
+        with st.spinner("🔍 Conducting comprehensive Shariah compliance analysis..."):
+            # Fetch stock data
+            stocks_data = data_fetcher.get_multiple_stocks_info(symbols_list)
+            
+            if not stocks_data:
+                st.error("❌ Could not fetch stock data for analysis")
+                st.stop()
+            
+            # Get comprehensive halal opportunities
+            halal_opportunities = halal_screener.get_halal_market_opportunities(stocks_data)
+            
+            if not halal_opportunities or not any(halal_opportunities.values()):
+                st.warning("⚠️ No halal investment opportunities found with current criteria")
+                st.stop()
+            
+            # Display summary dashboard
+            st.success("✅ Halal market analysis completed successfully!")
+            
+            summary = halal_opportunities.get('compliance_summary', {})
+            
+            # Key metrics
+            st.subheader("📊 Halal Market Summary")
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                st.metric("Stocks Analyzed", summary.get('total_analyzed', 0))
+            
+            with col2:
+                st.metric("Fully Compliant", summary.get('fully_compliant', 0))
+            
+            with col3:
+                avg_score = summary.get('avg_compliance_score', 0)
+                st.metric("Avg Compliance", f"{avg_score:.1f}/100")
+            
+            with col4:
+                compliance_rate = (summary.get('fully_compliant', 0) / summary.get('total_analyzed', 1)) * 100
+                st.metric("Compliance Rate", f"{compliance_rate:.1f}%")
+            
+            # Investment categories tabs
+            tab1, tab2, tab3, tab4 = st.tabs([
+                "🏆 Top Halal Stocks", 
+                "💰 Dividend Stocks", 
+                "📈 Growth Opportunities", 
+                "💎 Penny Stocks"
+            ])
+            
+            with tab1:
+                st.subheader("🏆 Premium Halal Investment Opportunities")
+                top_stocks = halal_opportunities.get('top_halal_stocks', [])
+                
+                if top_stocks:
+                    for i, stock in enumerate(top_stocks[:10], 1):
+                        with st.container():
+                            col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+                            
+                            with col1:
+                                st.markdown(f"**{i}. {stock['symbol']} - {stock['company_name'][:40]}...**")
+                                st.caption(f"Sector: {stock['sector']} | Grade: {stock['halal_grade']}")
+                            
+                            with col2:
+                                st.metric("Price", f"${stock['current_price']:.2f}")
+                            
+                            with col3:
+                                st.metric("Compliance", f"{stock['compliance_score']}/100")
+                            
+                            with col4:
+                                st.metric("Market Cap", format_currency(stock['market_cap']))
+                            
+                            st.markdown("---")
+                else:
+                    st.info("No premium halal stocks found with current criteria")
+            
+            with tab2:
+                st.subheader("💰 Shariah-Compliant Dividend Stocks")
+                dividend_stocks = halal_opportunities.get('ethical_dividend_stocks', [])
+                
+                if dividend_stocks:
+                    dividend_data = []
+                    for stock in dividend_stocks[:15]:
+                        dividend_data.append({
+                            'Symbol': stock['symbol'],
+                            'Company': stock['company_name'][:30] + "..." if len(stock['company_name']) > 30 else stock['company_name'],
+                            'Price': f"${stock['current_price']:.2f}",
+                            'Dividend Yield': f"{stock['dividend_yield']:.1f}%",
+                            'Compliance Score': f"{stock['compliance_score']}/100",
+                            'Halal Grade': stock['halal_grade'],
+                            'Sector': stock['sector'],
+                            'Market Cap': format_currency(stock['market_cap'])
+                        })
+                    
+                    dividend_df = pd.DataFrame(dividend_data)
+                    st.dataframe(dividend_df, use_container_width=True)
+                    create_download_csv(dividend_df, "halal_dividend_stocks")
+                else:
+                    st.info("No halal dividend stocks found with current criteria")
+            
+            with tab3:
+                st.subheader("📈 Halal Growth Investment Opportunities")
+                growth_stocks = halal_opportunities.get('shariah_compliant_growth', [])
+                
+                if growth_stocks:
+                    growth_data = []
+                    for stock in growth_stocks[:15]:
+                        growth_data.append({
+                            'Symbol': stock['symbol'],
+                            'Company': stock['company_name'][:30] + "..." if len(stock['company_name']) > 30 else stock['company_name'],
+                            'Price': f"${stock['current_price']:.2f}",
+                            'P/E Ratio': f"{stock['pe_ratio']:.1f}" if stock['pe_ratio'] else "N/A",
+                            'Compliance Score': f"{stock['compliance_score']}/100",
+                            'Halal Grade': stock['halal_grade'],
+                            'Sector': stock['sector'],
+                            'Market Cap': format_currency(stock['market_cap'])
+                        })
+                    
+                    growth_df = pd.DataFrame(growth_data)
+                    st.dataframe(growth_df, use_container_width=True)
+                    create_download_csv(growth_df, "halal_growth_stocks")
+                else:
+                    st.info("No halal growth stocks found with current criteria")
+            
+            with tab4:
+                st.subheader("💎 Halal Penny Stock Opportunities")
+                penny_stocks = halal_opportunities.get('halal_penny_stocks', [])
+                
+                if penny_stocks:
+                    st.warning("""
+                    ⚠️ **Penny Stock Risk Warning:**
+                    - High volatility and risk
+                    - Limited liquidity
+                    - Potential for significant losses
+                    - Thorough research required
+                    """)
+                    
+                    penny_data = []
+                    for stock in penny_stocks[:15]:
+                        penny_data.append({
+                            'Symbol': stock['symbol'],
+                            'Company': stock['company_name'][:25] + "..." if len(stock['company_name']) > 25 else stock['company_name'],
+                            'Price': f"${stock['current_price']:.2f}",
+                            'Compliance Score': f"{stock['compliance_score']}/100",
+                            'Halal Grade': stock['halal_grade'],
+                            'Sector': stock['sector'],
+                            'Market Cap': format_currency(stock['market_cap']) if stock['market_cap'] > 0 else "N/A"
+                        })
+                    
+                    penny_df = pd.DataFrame(penny_data)
+                    st.dataframe(penny_df, use_container_width=True)
+                    create_download_csv(penny_df, "halal_penny_stocks")
+                else:
+                    st.info("No halal penny stocks found with current criteria")
+            
+            # Sector analysis
+            st.subheader("🏭 Halal Sector Analysis")
+            sector_analysis = halal_opportunities.get('sector_analysis', {})
+            
+            if sector_analysis:
+                sector_data = []
+                for sector, data in list(sector_analysis.items())[:10]:
+                    sector_data.append({
+                        'Sector': sector,
+                        'Stock Count': data['stock_count'],
+                        'Avg Compliance': f"{data['avg_compliance_score']:.1f}",
+                        'Fully Compliant': data['fully_compliant_count'],
+                        'Compliance Rate': f"{data['compliance_rate']:.1f}%",
+                        'Top Stocks': ', '.join(data['top_stocks'][:3])
+                    })
+                
+                sector_df = pd.DataFrame(sector_data)
+                st.dataframe(sector_df, use_container_width=True)
+                
+                # Sector visualization
+                import plotly.express as px
+                fig = px.bar(
+                    x=[item['Sector'] for item in sector_data],
+                    y=[float(item['Compliance Rate'].replace('%', '')) for item in sector_data],
+                    title='Halal Compliance Rate by Sector',
+                    labels={'x': 'Sector', 'y': 'Compliance Rate (%)'}
+                )
+                fig.update_xaxes(tickangle=45)
+                st.plotly_chart(fig, use_container_width=True)
+            
+            # Generate comprehensive report
+            st.subheader("📄 Comprehensive Halal Investment Report")
+            report = halal_screener.generate_halal_investment_report(halal_opportunities)
+            
+            with st.expander("📋 View Full Report", expanded=False):
+                st.markdown(report)
+            
+            # Download report
+            st.download_button(
+                label="📥 Download Halal Investment Report",
+                data=report,
+                file_name=f"halal_investment_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
+                mime="text/markdown"
+            )
+            
+            # Scholar consultation reminder
+            st.info("""
+            📞 **Scholar Consultation Recommended**
+            
+            While this analysis follows AAOIFI standards, we recommend consulting with qualified Islamic finance scholars for:
+            - Final investment approval
+            - Complex cases requiring review
+            - Personal fatwa for specific situations
+            - Regular compliance monitoring
+            """)
 
 elif page == "🤖 AI Market Analysis":
     st.title("🤖 AI Autonomous Market Analysis")
