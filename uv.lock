@@ -350,6 +350,15 @@ wheels = [
 ]
 
 [[package]]
+name = "inflection"
+version = "0.5.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e1/7e/691d061b7329bc8d54edbf0ec22fbfb2afe61facb681f9aaa9bff7a27d04/inflection-0.5.1.tar.gz", hash = "sha256:1a29730d366e996aaacffb2f1f1cb9593dc38e2ddd30c91250c6dde09ea9b417", size = 15091 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/59/91/aa6bde563e0085a02a435aa99b49ef75b0a4b062635e606dab23ce18d720/inflection-0.5.1-py2.py3-none-any.whl", hash = "sha256:f38b2b640938a4f35ade69ac3d053042959b62a0f1076a5bbaa1b9526605a8a2", size = 9454 },
+]
+
+[[package]]
 name = "jinja2"
 version = "3.1.6"
 source = { registry = "https://pypi.org/simple" }
@@ -556,6 +565,15 @@ wheels = [
 ]
 
 [[package]]
+name = "more-itertools"
+version = "10.7.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ce/a0/834b0cebabbfc7e311f30b46c8188790a37f89fc8d756660346fe5abfd09/more_itertools-10.7.0.tar.gz", hash = "sha256:9fddd5403be01a94b204faadcff459ec3568cf110265d3c54323e1e866ad29d3", size = 127671 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2b/9f/7ba6f94fc1e9ac3d2b853fdff3035fb2fa5afbed898c4a72b8a020610594/more_itertools-10.7.0-py3-none-any.whl", hash = "sha256:d43980384673cb07d2f7d2d918c616b30c659c089ee23953f601d6609c67510e", size = 65278 },
+]
+
+[[package]]
 name = "multitasking"
 version = "0.0.11"
 source = { registry = "https://pypi.org/simple" }
@@ -571,6 +589,49 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/32/fc/7b9a3689911662be59889b1b0b40e17d5dba6f98080994d86ca1f3154d41/narwhals-1.41.0.tar.gz", hash = "sha256:0ab2e5a1757a19b071e37ca74b53b0b5426789321d68939738337dfddea629b5", size = 488446 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c9/e0/ade8619846645461c012498f02b93a659e50f07d9d9a6ffefdf5ea2c02a0/narwhals-1.41.0-py3-none-any.whl", hash = "sha256:d958336b40952e4c4b7aeef259a7074851da0800cf902186a58f2faeff97be02", size = 357968 },
+]
+
+[[package]]
+name = "nasdaq-data-link"
+version = "1.0.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "inflection" },
+    { name = "more-itertools" },
+    { name = "numpy" },
+    { name = "pandas" },
+    { name = "python-dateutil" },
+    { name = "requests" },
+    { name = "six" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a7/2a/f3c908206b530b93beaa90f0c645868a864bf7516fc0f0f5ed38f8f59fa1/Nasdaq_Data_Link-1.0.4-py2.py3-none-any.whl", hash = "sha256:214a620551da1c7521476839fb96f932234d4d78e7ba44310722709ca37b0691", size = 28127 },
+]
+
+[[package]]
+name = "nasdaq-stock"
+version = "0.0.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "lxml" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/cc/ea/74ae32c4ed8ff072d7cd9eb6e684122f3e82e18df3d5075a9e7511cc3653/nasdaq_stock-0.0.5.tar.gz", hash = "sha256:78370d8325a08c72d6fbe7a9052506e20d38fefe417e28faa43fa7b1c76f81b5", size = 3811 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/39/9a/16f6daf36a174b04eab0b7d757b9c87b648061784b550b6a700a678ded50/nasdaq_stock-0.0.5-py3-none-any.whl", hash = "sha256:8dfb577a21d1a925d816c5aa2c35b451e64f55aa08d17e2fb7b683f753357a76", size = 4217 },
+]
+
+[[package]]
+name = "nasdaq-stock-quote"
+version = "0.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "lxml" },
+    { name = "requests" },
+    { name = "setuptools" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ea/9a/aa7015472f9170a55da003694dd9cad4eebd2dd71c71def28b35087a5a1c/nasdaq_stock_quote-0.1.1.tar.gz", hash = "sha256:03769f34815a4f9dfa0051e43415926f8c663c30ce6792643877c03f37d8e450", size = 3643 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5c/5d/03510c82adce18f70d3d0ac0a827b2762719de441230a5b01c9c0ccfadce/nasdaq_stock_quote-0.1.1-py3-none-any.whl", hash = "sha256:be597f204fae0233379155f73c1a8c27d135a7210f71f123665f88e937317a23", size = 5213 },
 ]
 
 [[package]]
@@ -919,6 +980,17 @@ wheels = [
 ]
 
 [[package]]
+name = "pynasdaq"
+version = "0.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "lxml" },
+    { name = "pandas" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/10/99/777bd6be07a5a45af6f3fe5e9790d0673acc345a283d81fc99c02ad3a3d6/pynasdaq-0.4.0.tar.gz", hash = "sha256:700d56ed5da91d45688aab573f77b213fdac360032fdb118f19f9f23945a189b", size = 3063 }
+
+[[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 source = { registry = "https://pypi.org/simple" }
@@ -962,9 +1034,13 @@ dependencies = [
     { name = "beautifulsoup4" },
     { name = "html5lib" },
     { name = "lxml" },
+    { name = "nasdaq-data-link" },
+    { name = "nasdaq-stock" },
+    { name = "nasdaq-stock-quote" },
     { name = "numpy" },
     { name = "pandas" },
     { name = "plotly" },
+    { name = "pynasdaq" },
     { name = "requests" },
     { name = "schedule" },
     { name = "streamlit" },
@@ -977,9 +1053,13 @@ requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.13.4" },
     { name = "html5lib", specifier = ">=1.1" },
     { name = "lxml", specifier = ">=5.4.0" },
+    { name = "nasdaq-data-link", specifier = "==1.0.4" },
+    { name = "nasdaq-stock", specifier = ">=0.0.5" },
+    { name = "nasdaq-stock-quote", specifier = ">=0.1.1" },
     { name = "numpy", specifier = ">=2.2.6" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "plotly", specifier = ">=6.1.2" },
+    { name = "pynasdaq", specifier = ">=0.4.0" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "schedule", specifier = ">=1.2.2" },
     { name = "streamlit", specifier = ">=1.45.1" },
@@ -1082,6 +1162,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/0c/91/b525790063015759f34447d4cf9d2ccb52cdee0f1dd6ff8764e863bcb74c/schedule-1.2.2.tar.gz", hash = "sha256:15fe9c75fe5fd9b9627f3f19cc0ef1420508f9f9a46f45cd0769ef75ede5f0b7", size = 26452 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/20/a7/84c96b61fd13205f2cafbe263cdb2745965974bdf3e0078f121dfeca5f02/schedule-1.2.2-py3-none-any.whl", hash = "sha256:5bef4a2a0183abf44046ae0d164cadcac21b1db011bdd8102e4a0c1e91e06a7d", size = 12220 },
+]
+
+[[package]]
+name = "setuptools"
+version = "80.9.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/18/5d/3bf57dcd21979b887f014ea83c24ae194cfcd12b9e0fda66b957c69d1fca/setuptools-80.9.0.tar.gz", hash = "sha256:f36b47402ecde768dbfafc46e8e4207b4360c654f1f3bb84475f0a28628fb19c", size = 1319958 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a3/dc/17031897dae0efacfea57dfd3a82fdd2a2aeb58e0ff71b77b87e44edc772/setuptools-80.9.0-py3-none-any.whl", hash = "sha256:062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922", size = 1201486 },
 ]
 
 [[package]]

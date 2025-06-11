@@ -8,6 +8,9 @@ dependencies = [
     "beautifulsoup4>=4.13.4",
     "html5lib>=1.1",
     "lxml>=5.4.0",
+    "nasdaq-data-link==1.0.4",
+    "nasdaq-stock-quote>=0.1.1",
+    "nasdaq-stock>=0.0.5",
     "numpy>=2.2.6",
     "pandas>=2.2.3",
     "plotly>=6.1.2",
@@ -15,4 +18,5 @@ dependencies = [
     "schedule>=1.2.2",
     "streamlit>=1.45.1",
     "yfinance>=0.2.61",
+    "pynasdaq>=0.4.0",
 ]
