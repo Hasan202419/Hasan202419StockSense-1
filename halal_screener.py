@@ -42,14 +42,16 @@ class JarvisAI:
             # Simulated news analysis (replace with real API in production)
             sentiment_score = np.random.uniform(0.3, 0.9)
             news_impact = "positive" if sentiment_score > 0.6 else "neutral" if sentiment_score > 0.4 else "negative"
-            
+
             return {
                 "sentiment_score": sentiment_score,
                 "impact": news_impact,
                 "volume_spike_probability": sentiment_score * 0.8,
                 "breakout_catalyst": sentiment_score > 0.75
             }
-        except:
+        except Exception as e:
+            import logging
+            logging.error(f"Error analyzing news sentiment for {symbol}: {str(e)}")
             return {"sentiment_score": 0.5, "impact": "neutral"}
     
     def detect_unusual_volume(self, symbol: str, current_volume: int, avg_volume: int) -> Dict:

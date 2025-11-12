@@ -44,16 +44,18 @@ class ComprehensiveMarketScanner:
                 nyse_url = "ftp://ftp.nasdaqtrader.com/SymbolDirectory/nasdaqlisted.txt"
                 nyse_data = pd.read_csv(nyse_url, sep='|')
                 all_stocks['NYSE'] = nyse_data['Symbol'].dropna().tolist()
-            except:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Failed to fetch NYSE stocks: {str(e)}")
 
             # NASDAQ stocks
             try:
                 nasdaq_url = "ftp://ftp.nasdaqtrader.com/SymbolDirectory/otherlisted.txt"
                 nasdaq_data = pd.read_csv(nasdaq_url, sep='|')
                 all_stocks['NASDAQ'] = nasdaq_data['Symbol'].dropna().tolist()
-            except:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Failed to fetch NASDAQ stocks: {str(e)}")
 
             # Fallback to popular stocks if FTP fails
             if not all_stocks['NYSE'] and not all_stocks['NASDAQ']:

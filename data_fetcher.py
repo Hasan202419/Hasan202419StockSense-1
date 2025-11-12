@@ -155,18 +155,19 @@ class DataFetcher:
     def validate_symbol(self, symbol: str) -> bool:
         """
         Validate if a stock symbol exists and has valid data
-        
+
         Args:
             symbol (str): Stock ticker symbol
-            
+
         Returns:
             bool: True if valid, False otherwise
         """
         try:
             ticker = yf.Ticker(symbol.upper())
             info = ticker.info
-            
+
             # Check if we got valid data
             return bool(info and 'symbol' in info and info.get('regularMarketPrice'))
-        except:
+        except Exception as e:
+            st.warning(f"Error validating symbol {symbol}: {str(e)}")
             return False

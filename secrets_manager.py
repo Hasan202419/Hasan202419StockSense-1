@@ -2,6 +2,7 @@
 import os
 import streamlit as st
 from typing import Dict, Optional
+import requests
 
 class SecretsManager:
     """Manage API keys and sensitive configuration"""
@@ -185,11 +186,11 @@ class SecretsManager:
                     test_results['Alpha Vantage'] = "✅ Connected Successfully"
                 else:
                     test_results['Alpha Vantage'] = "❌ Invalid API Key or Quota Exceeded"
-            except:
+            except Exception as e:
                 test_results['Alpha Vantage'] = "❌ Connection Failed"
         else:
             test_results['Alpha Vantage'] = "⚪ Not Configured"
-        
+
         # Test Finnhub
         if status.get('FINNHUB_API_KEY'):
             try:
@@ -200,11 +201,11 @@ class SecretsManager:
                     test_results['Finnhub'] = "✅ Connected Successfully"
                 else:
                     test_results['Finnhub'] = "❌ Invalid API Key"
-            except:
+            except Exception as e:
                 test_results['Finnhub'] = "❌ Connection Failed"
         else:
             test_results['Finnhub'] = "⚪ Not Configured"
-        
+
         # Test News API
         if status.get('NEWS_API_KEY'):
             try:
@@ -215,11 +216,11 @@ class SecretsManager:
                     test_results['News API'] = "✅ Connected Successfully"
                 else:
                     test_results['News API'] = "❌ Invalid API Key"
-            except:
+            except Exception as e:
                 test_results['News API'] = "❌ Connection Failed"
         else:
             test_results['News API'] = "⚪ Not Configured"
-        
+
         # Test Telegram Bot
         if status.get('TELEGRAM_BOT_TOKEN'):
             try:
@@ -230,7 +231,7 @@ class SecretsManager:
                     test_results['Telegram Bot'] = "✅ Bot Token Valid"
                 else:
                     test_results['Telegram Bot'] = "❌ Invalid Bot Token"
-            except:
+            except Exception as e:
                 test_results['Telegram Bot'] = "❌ Connection Failed"
         else:
             test_results['Telegram Bot'] = "⚪ Not Configured"
