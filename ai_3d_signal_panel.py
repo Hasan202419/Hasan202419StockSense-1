@@ -12,6 +12,15 @@ import json
 import streamlit as st
 import streamlit.components.v1 as components
 from pathlib import Path
+import os
+
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    print("✅ API keys loaded from .env file")
+except ImportError:
+    print("⚠️ python-dotenv not installed. Using system environment variables.")
 
 
 class AI3DSignalPanel:
@@ -25,6 +34,82 @@ class AI3DSignalPanel:
         self.fear_greed_index = {"fear": 50, "greed": 50}
         self.market_sentiment = "NEUTRAL"
         self.signal_history = []
+
+        # Load API keys
+        self.polygon_api_key = os.getenv('POLYGON_API_KEY')
+        self.alpha_vantage_key = os.getenv('ALPHA_VANTAGE_API_KEY')
+        self.finnhub_key = os.getenv('FINNHUB_API_KEY')
+        self.news_api_key = os.getenv('NEWS_API_KEY')
+
+        # API availability status
+        self.has_polygon = bool(self.polygon_api_key)
+        self.has_alpha_vantage = bool(self.alpha_vantage_key)
+        self.has_finnhub = bool(self.finnhub_key)
+        self.has_news_api = bool(self.news_api_key)
+
+        if self.has_polygon:
+            st.info(f"✅ Polygon.io API connected - Real-time data enabled")
+        if self.has_finnhub:
+            st.info(f"✅ Finnhub API connected - Advanced analysis enabled")
+        if self.has_alpha_vantage:
+            st.info(f"✅ Alpha Vantage API connected - Technical indicators enabled")
+
+    def _fetch_polygon_data(self, symbol: str) -> Optional[Dict]:
+        """Fetch real-time data from Polygon.io API"""
+        if not self.has_polygon:
+            return None
+
+        try:
+            import requests
+
+            # Get latest quote
+            url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/prev?adjusted=true&apiKey={self.polygon_api_key}"
+            response = requests.get(url, timeout=10)
+
+            if response.status_code == 200:
+                data = response.json()
+                if 'results' in data and len(data['results']) > 0:
+                    result = data['results'][0]
+                    return {
+                        'symbol': symbol,
+                        'open': result.get('o'),
+                        'high': result.get('h'),
+                        'low': result.get('l'),
+                        'close': result.get('c'),
+                        'volume': result.get('v'),
+                        'source': 'polygon'
+                    }
+        except Exception as e:
+            print(f"Polygon API error for {symbol}: {e}")
+
+        return None
+
+    def _fetch_finnhub_data(self, symbol: str) -> Optional[Dict]:
+        """Fetch real-time data from Finnhub API"""
+        if not self.has_finnhub:
+            return None
+
+        try:
+            import requests
+
+            url = f"https://finnhub.io/api/v1/quote?symbol={symbol}&token={self.finnhub_key}"
+            response = requests.get(url, timeout=10)
+
+            if response.status_code == 200:
+                data = response.json()
+                return {
+                    'symbol': symbol,
+                    'current': data.get('c'),
+                    'high': data.get('h'),
+                    'low': data.get('l'),
+                    'open': data.get('o'),
+                    'previous_close': data.get('pc'),
+                    'source': 'finnhub'
+                }
+        except Exception as e:
+            print(f"Finnhub API error for {symbol}: {e}")
+
+        return None
 
     def generate_ai_signals(
         self, symbols: List[str], timeframe: str = "1d"
@@ -43,16 +128,36 @@ class AI3DSignalPanel:
 
         for symbol in symbols:
             try:
-                # Fetch real-time data
+                # Try Polygon API first (most reliable)
+                polygon_data = self._fetch_polygon_data(symbol)
+
+                # Try Finnhub API as backup
+                finnhub_data = self._fetch_finnhub_data(symbol)
+
+                # Fallback to yfinance
                 ticker = yf.Ticker(symbol)
                 hist = ticker.history(period="3mo", interval=timeframe)
 
                 if hist.empty or len(hist) < 20:
-                    continue
+                    # Try using API data if yfinance fails
+                    if polygon_data or finnhub_data:
+                        st.info(f"📡 Using API data for {symbol}")
+                    else:
+                        continue
 
                 # Get current info
                 info = ticker.info
-                current_price = hist["Close"].iloc[-1]
+                current_price = hist["Close"].iloc[-1] if not hist.empty else (
+                    polygon_data.get('close') if polygon_data else
+                    finnhub_data.get('current') if finnhub_data else 0
+                )
+
+                if current_price == 0:
+                    continue
+
+                # Enrich with API data
+                if polygon_data:
+                    info['volume'] = polygon_data.get('volume', info.get('volume', 0))
 
                 # Generate signal using AI analysis
                 signal = self._analyze_and_generate_signal(
@@ -60,6 +165,14 @@ class AI3DSignalPanel:
                 )
 
                 if signal:
+                    # Add data source info
+                    if polygon_data:
+                        signal['data_source'] = 'Polygon.io (Real-time)'
+                    elif finnhub_data:
+                        signal['data_source'] = 'Finnhub (Real-time)'
+                    else:
+                        signal['data_source'] = 'Yahoo Finance'
+
                     signals.append(signal)
 
             except Exception as e:

@@ -19,4 +19,5 @@ dependencies = [
     "streamlit>=1.45.1",
     "yfinance>=0.2.61",
     "pynasdaq>=0.4.0",
+    "python-dotenv>=1.0.0",
 ]
