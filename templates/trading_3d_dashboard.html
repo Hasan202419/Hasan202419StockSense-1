@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Trading AI Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0F1724 0%, #1a1f2e 100%);
+            overflow: hidden;
+            color: #ffffff;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #info-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(15, 23, 36, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(31, 182, 255, 0.3);
+            max-width: 350px;
+            z-index: 10;
+        }
+
+        .signal-card {
+            background: rgba(30, 41, 59, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid;
+            transition: all 0.3s ease;
+        }
+
+        .signal-card:hover {
+            transform: translateX(5px);
+            background: rgba(30, 41, 59, 0.8);
+        }
+
+        .signal-buy {
+            border-left-color: #00FF88;
+        }
+
+        .signal-sell {
+            border-left-color: #FF3750;
+        }
+
+        .signal-hold {
+            border-left-color: #1FB6FF;
+        }
+
+        .signal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .symbol {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .confidence {
+            font-size: 14px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+        }
+
+        .action {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .action-buy {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00FF88;
+        }
+
+        .action-sell {
+            background: rgba(255, 55, 80, 0.2);
+            color: #FF3750;
+        }
+
+        .action-hold {
+            background: rgba(31, 182, 255, 0.2);
+            color: #1FB6FF;
+        }
+
+        #sentiment-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(15, 23, 36, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(31, 182, 255, 0.3);
+            width: 300px;
+            z-index: 10;
+        }
+
+        .sentiment-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #1FB6FF;
+        }
+
+        .sentiment-meter {
+            width: 100%;
+            height: 30px;
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .sentiment-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+            background: linear-gradient(90deg, #EF4444 0%, #FBBF24 50%, #10B981 100%);
+            border-radius: 15px;
+        }
+
+        .sentiment-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 5px;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        .control-btn {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(31, 182, 255, 0.3);
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .control-btn:hover {
+            background: rgba(31, 182, 255, 0.2);
+            border-color: #1FB6FF;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(31, 182, 255, 0.3);
+        }
+
+        .control-btn.active {
+            background: rgba(31, 182, 255, 0.3);
+            border-color: #1FB6FF;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 100;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #1FB6FF;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(15, 23, 36, 0.95);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 1000;
+            border: 1px solid rgba(31, 182, 255, 0.5);
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="spinner"></div>
+        <div style="color: #1FB6FF; font-size: 18px; font-weight: 600;">Loading 3D Trading Dashboard...</div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <!-- Signal Information Panel -->
+    <div id="info-overlay">
+        <h3 style="margin-bottom: 15px; color: #1FB6FF; font-size: 20px;">🤖 AI Trading Signals</h3>
+        <div id="signals-list">
+            <!-- Signals will be dynamically added here -->
+        </div>
+    </div>
+
+    <!-- Sentiment Panel -->
+    <div id="sentiment-panel">
+        <div class="sentiment-title">📊 Market Sentiment</div>
+        <div class="sentiment-meter">
+            <div class="sentiment-fill" id="sentiment-fill" style="width: 50%"></div>
+        </div>
+        <div class="sentiment-label">
+            <span>😨 Fear</span>
+            <span>😃 Greed</span>
+        </div>
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 13px; color: rgba(255,255,255,0.7);">Fear Index:</span>
+                <span id="fear-value" style="font-weight: 700; color: #EF4444;">0%</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="font-size: 13px; color: rgba(255,255,255,0.7);">Greed Index:</span>
+                <span id="greed-value" style="font-weight: 700; color: #10B981;">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Control Buttons -->
+    <div id="controls">
+        <button class="control-btn active" onclick="setViewMode('signals')">📡 Signals</button>
+        <button class="control-btn" onclick="setViewMode('screener')">🔍 Screener</button>
+        <button class="control-btn" onclick="setViewMode('sentiment')">📊 Sentiment</button>
+        <button class="control-btn" onclick="resetCamera()">🎯 Reset View</button>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="tooltip"></div>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <!-- GSAP for smooth animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+
+    <!-- Mobile Optimizer -->
+    <script src="../static/js/mobile-optimizer.js"></script>
+
+    <script>
+        // Global variables
+        let scene, camera, renderer, controls;
+        let signalTowers = [];
+        let sentimentGauge;
+        let tradingPanels = [];
+        let raycaster, mouse;
+        let currentViewMode = 'signals';
+
+        // Sample AI signals data (will be replaced with real-time data)
+        let aiSignals = [
+            { symbol: 'AAPL', action: 'BUY', confidence: 92, price: 178.50, target: 195.00 },
+            { symbol: 'TSLA', action: 'SELL', confidence: 85, price: 242.84, target: 220.00 },
+            { symbol: 'NVDA', action: 'BUY', confidence: 96, price: 495.22, target: 550.00 },
+            { symbol: 'META', action: 'HOLD', confidence: 65, price: 325.67, target: 330.00 },
+            { symbol: 'GOOGL', action: 'BUY', confidence: 88, price: 140.12, target: 155.00 }
+        ];
+
+        // Initialize Mobile Optimizer
+        const mobileOptimizer = new MobileOptimizer();
+        mobileOptimizer.logDeviceInfo();
+
+        // Get optimized settings
+        const optimizedSettings = mobileOptimizer.getOptimizedSettings();
+
+        // Initialize scene
+        function init() {
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0F1724);
+
+            // Apply fog based on device performance
+            if (optimizedSettings.fog) {
+                scene.fog = new THREE.Fog(0x0F1724, 10, 50);
+            }
+
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(
+                45,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            camera.position.set(12, 8, 15);
+
+            // Renderer setup with optimized settings
+            renderer = new THREE.WebGLRenderer({
+                antialias: optimizedSettings.antialias,
+                alpha: true,
+                powerPreference: mobileOptimizer.performanceLevel === 'low' ? 'low-power' : 'high-performance'
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // Apply mobile optimizations
+            mobileOptimizer.optimizeRenderer(renderer);
+
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxDistance = 30;
+            controls.minDistance = 5;
+
+            // Apply mobile touch controls
+            mobileOptimizer.setupTouchControls(controls, camera);
+
+            // Raycaster for interactions
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 15, 5);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.camera.near = 0.1;
+            directionalLight.shadow.camera.far = 50;
+            scene.add(directionalLight);
+
+            // Add point lights for ambiance
+            const pointLight1 = new THREE.PointLight(0x1FB6FF, 1, 20);
+            pointLight1.position.set(-5, 5, 5);
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0x8B5CF6, 1, 20);
+            pointLight2.position.set(5, 5, -5);
+            scene.add(pointLight2);
+
+            // Create 3D elements
+            createMainPlatform();
+            createSignalTowers();
+            createSentimentGauge();
+            createTradingPanels();
+            createGridHelper();
+
+            // Update UI
+            updateSignalsList();
+            updateSentiment(45, 55); // Sample values
+
+            // Adjust UI layout for mobile
+            mobileOptimizer.adjustUILayout();
+
+            // Event listeners
+            window.addEventListener('resize', onWindowResize);
+
+            // Only add mouse events for non-touch devices
+            if (!mobileOptimizer.isMobile && !mobileOptimizer.isTablet) {
+                window.addEventListener('mousemove', onMouseMove);
+            }
+            window.addEventListener('click', onMouseClick);
+
+            // Hide loading screen
+            document.getElementById('loading').style.display = 'none';
+
+            // Start animation with performance optimization
+            if (optimizedSettings.animationFPS < 60) {
+                // Throttled animation for low-performance devices
+                const throttledAnimate = mobileOptimizer.createThrottledAnimationLoop(animateScene);
+                requestAnimationFrame(throttledAnimate);
+            } else {
+                // Normal animation loop
+                animate();
+            }
+        }
+
+        // Create main glass platform
+        function createMainPlatform() {
+            const geometry = new THREE.CylinderGeometry(8, 8, 0.2, 32);
+            const material = new THREE.MeshPhysicalMaterial({
+                color: 0x1E293B,
+                transparent: true,
+                opacity: 0.4,
+                transmission: 0.5,
+                roughness: 0.1,
+                metalness: 0.5,
+                clearcoat: 1.0
+            });
+            const platform = new THREE.Mesh(geometry, material);
+            platform.position.y = 0;
+            platform.receiveShadow = true;
+            scene.add(platform);
+
+            // Add glowing edge
+            const edgeGeometry = new THREE.TorusGeometry(8, 0.05, 16, 100);
+            const edgeMaterial = new THREE.MeshBasicMaterial({
+                color: 0x1FB6FF,
+                transparent: true,
+                opacity: 0.8
+            });
+            const edge = new THREE.Mesh(edgeGeometry, edgeMaterial);
+            edge.rotation.x = Math.PI / 2;
+            edge.position.y = 0.1;
+            scene.add(edge);
+        }
+
+        // Create signal towers
+        function createSignalTowers() {
+            const positions = [
+                { x: -4, z: -4 },
+                { x: 4, z: -4 },
+                { x: -4, z: 4 },
+                { x: 4, z: 4 },
+                { x: 0, z: 0 }
+            ];
+
+            aiSignals.forEach((signal, index) => {
+                if (index < positions.length) {
+                    const tower = createSignalTower(signal, positions[index]);
+                    scene.add(tower);
+                    signalTowers.push(tower);
+                }
+            });
+        }
+
+        // Create individual signal tower
+        function createSignalTower(signal, position) {
+            const group = new THREE.Group();
+            group.position.set(position.x, 0, position.z);
+            group.userData = { signal: signal };
+
+            // Base
+            const baseGeometry = new THREE.CylinderGeometry(0.5, 0.7, 0.3, 8);
+            const baseMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0x1E293B,
+                metalness: 0.8,
+                roughness: 0.2
+            });
+            const base = new THREE.Mesh(baseGeometry, baseMaterial);
+            base.position.y = 0.15;
+            group.add(base);
+
+            // Tower
+            const towerHeight = 1.5 + (signal.confidence / 100) * 1.5;
+            const towerGeometry = new THREE.CylinderGeometry(0.3, 0.4, towerHeight, 8);
+
+            let color;
+            if (signal.action === 'BUY') color = 0x00FF88;
+            else if (signal.action === 'SELL') color = 0xFF3750;
+            else color = 0x1FB6FF;
+
+            const towerMaterial = new THREE.MeshPhysicalMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.7,
+                transmission: 0.6,
+                roughness: 0.1,
+                metalness: 0.3,
+                emissive: color,
+                emissiveIntensity: 0.3
+            });
+            const tower = new THREE.Mesh(towerGeometry, towerMaterial);
+            tower.position.y = towerHeight / 2 + 0.3;
+            tower.castShadow = true;
+            group.add(tower);
+
+            // Pulse sphere
+            const pulseGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+            const pulseMaterial = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.4
+            });
+            const pulseSphere = new THREE.Mesh(pulseGeometry, pulseMaterial);
+            pulseSphere.position.y = towerHeight + 0.5;
+            group.add(pulseSphere);
+
+            // Store for animation
+            group.userData.pulseSphere = pulseSphere;
+            group.userData.tower = tower;
+
+            return group;
+        }
+
+        // Create sentiment gauge
+        function createSentimentGauge() {
+            const group = new THREE.Group();
+            group.position.set(-6, 2, 0);
+
+            // Ring
+            const ringGeometry = new THREE.TorusGeometry(1.5, 0.08, 16, 100);
+            const ringMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0x1E293B,
+                transparent: true,
+                opacity: 0.7,
+                metalness: 0.5
+            });
+            const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+            ring.rotation.x = Math.PI / 2;
+            group.add(ring);
+
+            // Indicator needle
+            const needleGeometry = new THREE.ConeGeometry(0.1, 1.2, 8);
+            const needleMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0x1FB6FF,
+                emissive: 0x1FB6FF,
+                emissiveIntensity: 0.5
+            });
+            const needle = new THREE.Mesh(needleGeometry, needleMaterial);
+            needle.position.y = 0.6;
+            needle.rotation.z = Math.PI / 4; // Default position
+            group.add(needle);
+
+            group.userData.needle = needle;
+            sentimentGauge = group;
+            scene.add(group);
+        }
+
+        // Create trading panels
+        function createTradingPanels() {
+            const panelPositions = [
+                { x: 6, y: 2, z: 3, label: 'Screener' },
+                { x: 6, y: 2, z: -3, label: 'Settings' }
+            ];
+
+            panelPositions.forEach(pos => {
+                const panel = createTradingPanel(pos);
+                scene.add(panel);
+                tradingPanels.push(panel);
+            });
+        }
+
+        // Create individual trading panel
+        function createTradingPanel(config) {
+            const group = new THREE.Group();
+            group.position.set(config.x, config.y, config.z);
+
+            // Panel background
+            const geometry = new THREE.BoxGeometry(2, 1.5, 0.1);
+            const material = new THREE.MeshPhysicalMaterial({
+                color: 0x1E293B,
+                transparent: true,
+                opacity: 0.6,
+                transmission: 0.3,
+                roughness: 0.1,
+                metalness: 0.4
+            });
+            const panel = new THREE.Mesh(geometry, material);
+            group.add(panel);
+
+            // Border
+            const edgesGeometry = new THREE.EdgesGeometry(geometry);
+            const edgesMaterial = new THREE.LineBasicMaterial({
+                color: 0x1FB6FF,
+                transparent: true,
+                opacity: 0.6
+            });
+            const edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+            group.add(edges);
+
+            return group;
+        }
+
+        // Create grid helper
+        function createGridHelper() {
+            const gridHelper = new THREE.GridHelper(20, 20, 0x1FB6FF, 0x1E293B);
+            gridHelper.material.opacity = 0.2;
+            gridHelper.material.transparent = true;
+            gridHelper.position.y = -0.1;
+            scene.add(gridHelper);
+        }
+
+        // Animation scene function (separated for throttling)
+        function animateScene(currentTime) {
+            // Animate signal towers
+            signalTowers.forEach((tower, index) => {
+                const time = Date.now() * 0.001;
+                const pulseSphere = tower.userData.pulseSphere;
+
+                // Pulse animation
+                const scale = 1 + Math.sin(time * 2 + index) * 0.3;
+                pulseSphere.scale.set(scale, scale, scale);
+
+                // Rotate tower slowly
+                tower.userData.tower.rotation.y += 0.005;
+
+                // Opacity pulse
+                pulseSphere.material.opacity = 0.3 + Math.sin(time * 3 + index) * 0.2;
+            });
+
+            // Update controls
+            controls.update();
+
+            // Render scene
+            renderer.render(scene, camera);
+        }
+
+        // Animation loop (60 FPS for high-performance devices)
+        function animate() {
+            requestAnimationFrame(animate);
+            animateScene(Date.now());
+        }
+
+        // Update signals list in UI
+        function updateSignalsList() {
+            const signalsList = document.getElementById('signals-list');
+            signalsList.innerHTML = '';
+
+            aiSignals.forEach(signal => {
+                const signalCard = document.createElement('div');
+                signalCard.className = `signal-card signal-${signal.action.toLowerCase()}`;
+
+                signalCard.innerHTML = `
+                    <div class="signal-header">
+                        <span class="symbol">${signal.symbol}</span>
+                        <span class="confidence">${signal.confidence}%</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="action action-${signal.action.toLowerCase()}">${signal.action}</span>
+                        <div style="text-align: right; font-size: 12px;">
+                            <div style="color: rgba(255,255,255,0.6);">Current: $${signal.price.toFixed(2)}</div>
+                            <div style="color: rgba(255,255,255,0.8); font-weight: 600;">Target: $${signal.target.toFixed(2)}</div>
+                        </div>
+                    </div>
+                `;
+
+                signalsList.appendChild(signalCard);
+            });
+        }
+
+        // Update sentiment display
+        function updateSentiment(fear, greed) {
+            const total = fear + greed;
+            const greedPercent = (greed / total) * 100;
+
+            document.getElementById('sentiment-fill').style.width = greedPercent + '%';
+            document.getElementById('fear-value').textContent = fear + '%';
+            document.getElementById('greed-value').textContent = greed + '%';
+
+            // Update 3D gauge needle
+            if (sentimentGauge) {
+                const needle = sentimentGauge.userData.needle;
+                const angle = (greedPercent / 100) * Math.PI - Math.PI / 2;
+                needle.rotation.z = angle;
+            }
+        }
+
+        // View mode control
+        function setViewMode(mode) {
+            currentViewMode = mode;
+
+            // Update button states
+            document.querySelectorAll('.control-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Adjust camera based on mode
+            if (mode === 'signals') {
+                gsap.to(camera.position, { x: 12, y: 8, z: 15, duration: 1 });
+            } else if (mode === 'screener') {
+                gsap.to(camera.position, { x: 8, y: 5, z: 8, duration: 1 });
+            } else if (mode === 'sentiment') {
+                gsap.to(camera.position, { x: -8, y: 4, z: 2, duration: 1 });
+            }
+        }
+
+        // Reset camera
+        function resetCamera() {
+            camera.position.set(12, 8, 15);
+            controls.target.set(0, 0, 0);
+        }
+
+        // Window resize handler
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Mouse move handler
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // Raycast for tooltip
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(signalTowers, true);
+
+            const tooltip = document.getElementById('tooltip');
+
+            if (intersects.length > 0) {
+                const tower = intersects[0].object.parent;
+                if (tower.userData.signal) {
+                    const signal = tower.userData.signal;
+                    tooltip.innerHTML = `
+                        <strong>${signal.symbol}</strong><br>
+                        Action: ${signal.action}<br>
+                        Confidence: ${signal.confidence}%<br>
+                        Price: $${signal.price.toFixed(2)}
+                    `;
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = event.clientX + 10 + 'px';
+                    tooltip.style.top = event.clientY + 10 + 'px';
+                }
+            } else {
+                tooltip.style.display = 'none';
+            }
+        }
+
+        // Mouse click handler
+        function onMouseClick(event) {
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(signalTowers, true);
+
+            if (intersects.length > 0) {
+                const tower = intersects[0].object.parent;
+                if (tower.userData.signal) {
+                    const signal = tower.userData.signal;
+                    alert(`Signal Details:\n\nSymbol: ${signal.symbol}\nAction: ${signal.action}\nConfidence: ${signal.confidence}%\nCurrent Price: $${signal.price.toFixed(2)}\nTarget Price: $${signal.target.toFixed(2)}`);
+                }
+            }
+        }
+
+        // API function to update signals from external source
+        function updateSignalsFromAPI(newSignals) {
+            aiSignals = newSignals;
+
+            // Remove old towers
+            signalTowers.forEach(tower => scene.remove(tower));
+            signalTowers = [];
+
+            // Create new towers
+            createSignalTowers();
+
+            // Update UI
+            updateSignalsList();
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
