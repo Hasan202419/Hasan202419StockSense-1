@@ -2,6 +2,7 @@
 import os
 import streamlit as st
 from typing import Dict, Optional
+import requests
 
 class SecretsManager:
     """Manage API keys and sensitive configuration"""
