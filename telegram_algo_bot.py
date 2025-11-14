@@ -558,7 +558,8 @@ Ready to identify profitable halal investment opportunities! 🚀
             }
             
             response = requests.post(url, params=params, timeout=10)
-            
+            response.encoding = 'utf-8'
+
             if response.status_code == 200:
                 return True
             else:

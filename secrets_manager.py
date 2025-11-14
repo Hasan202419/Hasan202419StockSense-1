@@ -181,6 +181,7 @@ class SecretsManager:
                 api_key = self.get_secret('ALPHA_VANTAGE_API_KEY')
                 test_url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=AAPL&apikey={api_key}"
                 response = requests.get(test_url, timeout=10)
+                response.encoding = 'utf-8'
                 if response.status_code == 200 and 'Global Quote' in response.text:
                     test_results['Alpha Vantage'] = "✅ Connected Successfully"
                 else:

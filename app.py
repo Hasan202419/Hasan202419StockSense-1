@@ -85,12 +85,12 @@ def format_currency(value):
 def create_download_csv(df, filename):
     """Create CSV download button"""
     csv_buffer = io.StringIO()
-    df.to_csv(csv_buffer, index=False)
+    df.to_csv(csv_buffer, index=False, encoding='utf-8')
     csv_data = csv_buffer.getvalue()
-    
+
     st.download_button(
         label="📥 Download CSV",
-        data=csv_data,
+        data=csv_data.encode('utf-8'),
         file_name=f"{filename}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
         mime="text/csv"
     )
@@ -1662,14 +1662,16 @@ elif page == "🔐 Secrets & API Configuration":
                         'text': '🎉 Telegram Bot muvaffaqiyatli sozlandi!\n\nAI Trading signallari tayyor!'
                     }
                     response = requests.post(test_url, json=data, timeout=10)
-                    
+                    response.encoding = 'utf-8'
+
                     if response.status_code == 200:
                         st.success("✅ Telegram Bot muvaffaqiyatli ishlayapti!")
                         st.balloons()
                     else:
                         st.error(f"❌ Telegram Bot xatosi: {response.text}")
                 except Exception as e:
-                    st.error(f"❌ Ulanish xatosi: {str(e)}")
+                    error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+                    st.error(f"❌ Ulanish xatosi: {error_msg}")
             else:
                 st.warning("⚠️ TELEGRAM_BOT_TOKEN va TELEGRAM_CHAT_ID talab qilinadi")
     

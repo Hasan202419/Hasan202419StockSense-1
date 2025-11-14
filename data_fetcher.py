@@ -132,7 +132,7 @@ class DataFetcher:
         try:
             # Fetch S&P 500 companies from Wikipedia
             url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-            tables = pd.read_html(url)
+            tables = pd.read_html(url, encoding='utf-8')
             sp500_table = tables[0]
             symbols = sp500_table['Symbol'].tolist()
             

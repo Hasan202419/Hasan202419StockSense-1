@@ -40,12 +40,12 @@ class AutonomousAnalyzer:
         try:
             # Fetch S&P 500
             sp500_url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-            sp500_tables = pd.read_html(sp500_url)
+            sp500_tables = pd.read_html(sp500_url, encoding='utf-8')
             sp500_symbols = sp500_tables[0]['Symbol'].str.replace('.', '-').tolist()
-            
+
             # Fetch NASDAQ 100
             nasdaq_url = "https://en.wikipedia.org/wiki/Nasdaq-100"
-            nasdaq_tables = pd.read_html(nasdaq_url)
+            nasdaq_tables = pd.read_html(nasdaq_url, encoding='utf-8')
             nasdaq_symbols = nasdaq_tables[4]['Ticker'].str.replace('.', '-').tolist()
             
             # Additional high-volume stocks for comprehensive analysis

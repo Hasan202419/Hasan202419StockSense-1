@@ -42,7 +42,7 @@ class ComprehensiveMarketScanner:
             # NYSE stocks
             try:
                 nyse_url = "ftp://ftp.nasdaqtrader.com/SymbolDirectory/nasdaqlisted.txt"
-                nyse_data = pd.read_csv(nyse_url, sep='|')
+                nyse_data = pd.read_csv(nyse_url, sep='|', encoding='utf-8')
                 all_stocks['NYSE'] = nyse_data['Symbol'].dropna().tolist()
             except:
                 pass
@@ -50,7 +50,7 @@ class ComprehensiveMarketScanner:
             # NASDAQ stocks
             try:
                 nasdaq_url = "ftp://ftp.nasdaqtrader.com/SymbolDirectory/otherlisted.txt"
-                nasdaq_data = pd.read_csv(nasdaq_url, sep='|')
+                nasdaq_data = pd.read_csv(nasdaq_url, sep='|', encoding='utf-8')
                 all_stocks['NASDAQ'] = nasdaq_data['Symbol'].dropna().tolist()
             except:
                 pass
