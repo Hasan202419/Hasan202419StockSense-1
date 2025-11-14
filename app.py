@@ -17,6 +17,7 @@ from ai_research_assistant import AIResearchAssistant
 from telegram_algo_bot import TelegramAlgoBot, start_telegram_bot_service
 from comprehensive_market_scanner import ComprehensiveMarketScanner
 from secrets_manager import SecretsManager
+from ai_3d_signal_panel import AI3DSignalPanel, display_3d_signals_streamlit
 
 # Configure Streamlit page
 st.set_page_config(
@@ -41,7 +42,8 @@ page = st.sidebar.selectbox(
     "Navigate to:",
     [
         "🏠 Home",
-        "🔍 Single Stock Analysis", 
+        "🎯 3D AI Signal Dashboard",
+        "🔍 Single Stock Analysis",
         "📊 Halal Stock Screener",
         "🕌 Halal Investment Hub",
         "🤖 AI Market Analysis",
@@ -127,6 +129,252 @@ if page == "🏠 Home":
     
     st.markdown("---")
     st.info("💡 Use the sidebar to navigate between different analysis tools.")
+
+elif page == "🎯 3D AI Signal Dashboard":
+    st.title("🎯 3D AI Trading Signals Dashboard")
+    st.markdown("### Real-time AI Signals with Interactive 3D Visualization")
+
+    # Configuration section
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("⚙️ 3D Dashboard Settings")
+
+    # Stock symbols input
+    default_symbols = "AAPL,TSLA,NVDA,META,GOOGL,AMZN,MSFT,AMD,NFLX,CRM"
+    symbols_input = st.sidebar.text_area(
+        "Stock Symbols (comma-separated):",
+        value=default_symbols,
+        height=100,
+        help="Enter stock symbols separated by commas"
+    )
+
+    # Timeframe selection
+    timeframe = st.sidebar.selectbox(
+        "Data Timeframe:",
+        ["1d", "1h", "5m", "15m", "30m"],
+        index=0,
+        help="Select data resolution for analysis"
+    )
+
+    # Signal filters
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("🔍 Signal Filters")
+
+    min_confidence = st.sidebar.slider(
+        "Minimum Confidence:",
+        min_value=50,
+        max_value=100,
+        value=70,
+        step=5,
+        help="Filter signals by minimum confidence score"
+    )
+
+    show_buy = st.sidebar.checkbox("Show BUY signals", value=True)
+    show_sell = st.sidebar.checkbox("Show SELL signals", value=True)
+    show_hold = st.sidebar.checkbox("Show HOLD signals", value=False)
+
+    # Auto-refresh option
+    auto_refresh = st.sidebar.checkbox(
+        "Auto-refresh (every 60s)",
+        value=False,
+        help="Automatically refresh signals every minute"
+    )
+
+    # Generate signals button
+    generate_btn = st.sidebar.button("🚀 Generate 3D Signals", type="primary", use_container_width=True)
+
+    # Parse symbols
+    symbols_list = [s.strip().upper() for s in symbols_input.split(",") if s.strip()]
+
+    if not symbols_list:
+        st.warning("⚠️ Please enter at least one stock symbol in the sidebar.")
+        st.stop()
+
+    # Generate or use cached signals
+    if generate_btn or 'ai_3d_panel' not in st.session_state:
+        with st.spinner(f"🤖 Analyzing {len(symbols_list)} stocks with AI..."):
+            # Initialize 3D panel
+            ai_3d_panel = AI3DSignalPanel()
+
+            # Generate signals
+            signals = ai_3d_panel.generate_ai_signals(symbols_list, timeframe)
+
+            # Calculate Fear & Greed
+            fear_greed = ai_3d_panel.calculate_fear_greed_index({})
+
+            # Store in session state
+            st.session_state.ai_3d_panel = ai_3d_panel
+            st.session_state.last_update = datetime.now()
+    else:
+        ai_3d_panel = st.session_state.ai_3d_panel
+
+    # Display summary metrics
+    st.markdown("---")
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    total_signals = len(ai_3d_panel.signals)
+    buy_signals = sum(1 for s in ai_3d_panel.signals if s["action"] == "BUY")
+    sell_signals = sum(1 for s in ai_3d_panel.signals if s["action"] == "SELL")
+    hold_signals = sum(1 for s in ai_3d_panel.signals if s["action"] == "HOLD")
+
+    with col1:
+        st.metric("📊 Total Signals", total_signals)
+
+    with col2:
+        st.metric("🟢 Buy Signals", buy_signals, delta=f"{(buy_signals/total_signals*100):.0f}%" if total_signals > 0 else "0%")
+
+    with col3:
+        st.metric("🔴 Sell Signals", sell_signals, delta=f"{(sell_signals/total_signals*100):.0f}%" if total_signals > 0 else "0%")
+
+    with col4:
+        st.metric("😨 Fear Index", f"{ai_3d_panel.fear_greed_index['fear']}%")
+
+    with col5:
+        st.metric("😃 Greed Index", f"{ai_3d_panel.fear_greed_index['greed']}%")
+
+    # Market sentiment badge
+    sentiment = ai_3d_panel.market_sentiment
+    sentiment_colors = {
+        "FEARFUL": "🔴",
+        "NEUTRAL": "🟡",
+        "GREEDY": "🟢"
+    }
+    st.info(f"{sentiment_colors.get(sentiment, '⚪')} Market Sentiment: **{sentiment}**")
+
+    st.markdown("---")
+
+    # Filter signals based on user preferences
+    filtered_signals = ai_3d_panel.signals.copy()
+
+    # Apply confidence filter
+    filtered_signals = [s for s in filtered_signals if s["confidence"] >= min_confidence]
+
+    # Apply action filters
+    if not show_buy:
+        filtered_signals = [s for s in filtered_signals if s["action"] != "BUY"]
+    if not show_sell:
+        filtered_signals = [s for s in filtered_signals if s["action"] != "SELL"]
+    if not show_hold:
+        filtered_signals = [s for s in filtered_signals if s["action"] != "HOLD"]
+
+    # Render 3D Dashboard
+    st.subheader("🌐 Interactive 3D Signal Visualization")
+    st.markdown("""
+    **Controls:**
+    - 🖱️ **Left Click + Drag**: Rotate view
+    - 🖱️ **Right Click + Drag**: Pan view
+    - 🖱️ **Scroll**: Zoom in/out
+    - 🎯 **Click on towers**: View signal details
+    - 📊 **Control buttons**: Switch between views
+    """)
+
+    # Render 3D dashboard with filtered signals
+    ai_3d_panel.render_3d_dashboard(filtered_signals)
+
+    st.markdown("---")
+
+    # Display detailed signals table
+    st.subheader("📋 Detailed Signal Analysis")
+
+    if filtered_signals:
+        # Create DataFrame
+        df_signals = pd.DataFrame(filtered_signals)
+
+        # Select columns to display
+        display_columns = ["symbol", "action", "confidence", "price", "target", "rsi", "volume_ratio", "price_change_1d", "price_change_5d"]
+        df_display = df_signals[display_columns].copy()
+
+        # Rename columns for better readability
+        df_display.columns = ["Symbol", "Action", "Confidence %", "Current Price", "Target Price", "RSI", "Volume Ratio", "1D Change %", "5D Change %"]
+
+        # Format numbers
+        df_display["Confidence %"] = df_display["Confidence %"].apply(lambda x: f"{x}%")
+        df_display["Current Price"] = df_display["Current Price"].apply(lambda x: f"${x:.2f}")
+        df_display["Target Price"] = df_display["Target Price"].apply(lambda x: f"${x:.2f}")
+        df_display["1D Change %"] = df_display["1D Change %"].apply(lambda x: f"{x:+.2f}%")
+        df_display["5D Change %"] = df_display["5D Change %"].apply(lambda x: f"{x:+.2f}%")
+
+        # Color-code actions
+        def highlight_action(row):
+            if row["Action"] == "BUY":
+                return ['background-color: rgba(0, 255, 136, 0.2)'] * len(row)
+            elif row["Action"] == "SELL":
+                return ['background-color: rgba(255, 55, 80, 0.2)'] * len(row)
+            else:
+                return ['background-color: rgba(31, 182, 255, 0.1)'] * len(row)
+
+        styled_df = df_display.style.apply(highlight_action, axis=1)
+        st.dataframe(styled_df, use_container_width=True, height=400)
+
+        # Export options
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            # CSV download
+            csv = df_signals.to_csv(index=False)
+            st.download_button(
+                label="📥 Download CSV",
+                data=csv,
+                file_name=f"ai_signals_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv"
+            )
+
+        with col2:
+            # JSON download
+            json_data = ai_3d_panel.export_signals_json()
+            st.download_button(
+                label="📄 Download JSON",
+                data=json_data,
+                file_name=f"ai_signals_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                mime="application/json"
+            )
+
+        with col3:
+            # Top signals
+            top_signals = ai_3d_panel.get_top_signals(limit=5, min_confidence=80)
+            st.metric("⭐ High-Confidence Signals", len(top_signals))
+
+        # Show top signals
+        if top_signals:
+            st.markdown("---")
+            st.subheader("⭐ Top High-Confidence Signals")
+
+            for idx, signal in enumerate(top_signals, 1):
+                with st.expander(f"#{idx} - {signal['symbol']} - {signal['action']} ({signal['confidence']}% confidence)"):
+                    col1, col2, col3 = st.columns(3)
+
+                    with col1:
+                        st.markdown("**Price Information:**")
+                        st.write(f"Current: ${signal['price']:.2f}")
+                        st.write(f"Target: ${signal['target']:.2f}")
+                        potential = ((signal['target'] - signal['price']) / signal['price'] * 100)
+                        st.write(f"Potential: {potential:+.2f}%")
+
+                    with col2:
+                        st.markdown("**Technical Indicators:**")
+                        st.write(f"RSI: {signal['rsi']:.2f}")
+                        st.write(f"Volume Ratio: {signal['volume_ratio']:.2f}x")
+                        st.write(f"1D Change: {signal['price_change_1d']:+.2f}%")
+
+                    with col3:
+                        st.markdown("**AI Analysis:**")
+                        indicators = signal.get('indicators', {})
+                        st.write(f"SMA 20: ${indicators.get('sma_20', 0):.2f}")
+                        st.write(f"Buy Score: {indicators.get('buy_score', 0)}")
+                        st.write(f"Sell Score: {indicators.get('sell_score', 0)}")
+    else:
+        st.info("ℹ️ No signals match the current filters. Try adjusting your filter settings in the sidebar.")
+
+    # Auto-refresh logic
+    if auto_refresh:
+        import time
+        time.sleep(60)
+        st.rerun()
+
+    # Last update timestamp
+    st.markdown("---")
+    if 'last_update' in st.session_state:
+        st.caption(f"Last updated: {st.session_state.last_update.strftime('%Y-%m-%d %H:%M:%S')}")
 
 elif page == "🔍 Single Stock Analysis":
     st.title("🔍 Single Stock Analysis")
